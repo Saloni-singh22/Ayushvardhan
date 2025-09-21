@@ -20,7 +20,7 @@ from app.utils.fhir_utils import create_operation_outcome, create_bundle_respons
 from app.utils.pagination import PaginationParams, paginate_results
 
 logger = logging.getLogger(__name__)
-router = APIRouter(prefix="/ValueSet", tags=["ValueSet"])
+router = APIRouter(tags=["ValueSet"])
 settings = get_settings()
 
 

@@ -45,11 +45,7 @@ async def get_capability_statement():
     - Supported operations ($validate-code, $lookup, $translate, $expand)
     - Authentication requirements and search parameters
     """
-    capability_statement = create_capability_statement(
-        base_url="http://localhost:8000/api/v1",
-        implementation_description="FHIR R4 Terminology Service with NAMASTE Traditional Medicine and WHO ICD-11 Integration",
-        implementation_version="1.0.0"
-    )
+    capability_statement = create_capability_statement()
     return JSONResponse(content=capability_statement.dict())
 
 # API health check endpoint

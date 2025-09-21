@@ -224,7 +224,7 @@ mongodb = MongoDB()
 
 async def get_database() -> AsyncIOMotorDatabase:
     """Get the database instance"""
-    if not mongodb.database:
+    if mongodb.database is None:
         await mongodb.connect()
     return mongodb.database
 
