@@ -286,7 +286,7 @@ async def expand_value_set(
         # Create expansion
         expansion = {
             "identifier": f"urn:uuid:{datetime.utcnow().isoformat()}",
-            "timestamp": datetime.utcnow(),
+            "timestamp": datetime.utcnow().isoformat(),
             "total": total_concepts,
             "offset": offset,
             "contains": expansion_concepts
@@ -306,10 +306,22 @@ async def expand_value_set(
         response_vs = dict(doc)
         response_vs["expansion"] = expansion
         
-        # Remove MongoDB-specific fields
+        # Remove MongoDB-specific fields and convert datetime objects
         response_vs.pop("_id", None)
         response_vs.pop("created_at", None)
         response_vs.pop("updated_at", None)
+        
+        # Convert any datetime objects to ISO strings for JSON serialization
+        def convert_datetime_to_string(obj):
+            if isinstance(obj, datetime):
+                return obj.isoformat()
+            elif isinstance(obj, dict):
+                return {key: convert_datetime_to_string(value) for key, value in obj.items()}
+            elif isinstance(obj, list):
+                return [convert_datetime_to_string(item) for item in obj]
+            return obj
+        
+        response_vs = convert_datetime_to_string(response_vs)
         
         return JSONResponse(content=response_vs)
         
