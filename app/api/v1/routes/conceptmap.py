@@ -49,7 +49,7 @@ async def search_concept_maps(
     Supports NAMASTE to ICD-11 mappings and traditional medicine dual-coding
     """
     try:
-        db_model = ConceptMapDBModel(db.concept_maps)
+        db_model = ConceptMapDBModel(db.conceptmaps)
         
         # Build MongoDB query
         query = {}
@@ -82,7 +82,7 @@ async def search_concept_maps(
             query["$text"] = {"$search": _text}
         
         # Execute search with pagination
-        cursor = db.concept_maps.find(query)
+        cursor = db.conceptmaps.find(query)
         
         # Apply sorting
         if _sort:
@@ -93,7 +93,7 @@ async def search_concept_maps(
             cursor = cursor.sort(_sort, sort_direction)
         
         # Get total count
-        total = await db.concept_maps.count_documents(query)
+        total = await db.conceptmaps.count_documents(query)
         
         # Apply pagination
         cursor = cursor.skip(_offset).limit(_count)
@@ -137,10 +137,10 @@ async def read_concept_map(
     Returns FHIR R4 compliant ConceptMap
     """
     try:
-        db_model = ConceptMapDBModel(db.concept_maps)
+        db_model = ConceptMapDBModel(db.conceptmaps)
         
         # Find by MongoDB _id or by id field
-        doc = await db.concept_maps.find_one({"$or": [{"_id": id}, {"id": id}]})
+        doc = await db.conceptmaps.find_one({"$or": [{"_id": id}, {"id": id}]})
         
         if not doc:
             raise HTTPException(
@@ -177,11 +177,11 @@ async def create_concept_map(
     Validates FHIR R4 compliance and stores in MongoDB
     """
     try:
-        db_model = ConceptMapDBModel(db.concept_maps)
+        db_model = ConceptMapDBModel(db.conceptmaps)
         
         # Validate canonical URL uniqueness
         if concept_map.url:
-            existing = await db.concept_maps.find_one({
+            existing = await db.conceptmaps.find_one({
                 "url": concept_map.url,
                 "version": concept_map.version
             })
@@ -211,13 +211,13 @@ async def create_concept_map(
         doc = db_model.to_dict(concept_map)
         
         # Insert into database
-        result = await db.concept_maps.insert_one(doc)
+        result = await db.conceptmaps.insert_one(doc)
         
         if not result.inserted_id:
             raise HTTPException(status_code=500, detail="Failed to create ConceptMap")
         
         # Return created resource
-        created_doc = await db.concept_maps.find_one({"_id": result.inserted_id})
+        created_doc = await db.conceptmaps.find_one({"_id": result.inserted_id})
         created_concept_map = db_model.from_dict(created_doc, ConceptMap)
         
         return created_concept_map
@@ -244,10 +244,10 @@ async def translate_concept(
     Returns FHIR Parameters resource with translation results
     """
     try:
-        db_model = ConceptMapDBModel(db.concept_maps)
+        db_model = ConceptMapDBModel(db.conceptmaps)
         
         # Find ConceptMap
-        doc = await db.concept_maps.find_one({"$or": [{"_id": id}, {"id": id}]})
+        doc = await db.conceptmaps.find_one({"$or": [{"_id": id}, {"id": id}]})
         
         if not doc:
             raise HTTPException(
@@ -389,13 +389,13 @@ async def search_namaste_concept_maps(
         if confidence_threshold:
             query["dual_concepts.mapping_confidence"] = {"$gte": confidence_threshold}
         
-        cursor = db.concept_maps.find(query).skip(_offset).limit(_count)
+        cursor = db.conceptmaps.find(query).skip(_offset).limit(_count)
         results = await cursor.to_list(length=None)
-        total = await db.concept_maps.count_documents(query)
+        total = await db.conceptmaps.count_documents(query)
         
         # Convert to Bundle
         entries = []
-        db_model = ConceptMapDBModel(db.concept_maps)
+        db_model = ConceptMapDBModel(db.conceptmaps)
         
         for doc in results:
             concept_map = db_model.from_dict(doc, NAMASTEConceptMap)
@@ -435,7 +435,7 @@ async def get_dual_coding_mappings(
     """
     try:
         # Find ConceptMap
-        doc = await db.concept_maps.find_one({"$or": [{"_id": id}, {"id": id}]})
+        doc = await db.conceptmaps.find_one({"$or": [{"_id": id}, {"id": id}]})
         
         if not doc:
             raise HTTPException(

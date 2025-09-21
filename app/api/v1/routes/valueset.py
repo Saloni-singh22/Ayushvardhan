@@ -48,7 +48,7 @@ async def search_value_sets(
     Supports NAMASTE traditional medicine and biomedical ValueSets
     """
     try:
-        db_model = ValueSetDBModel(db.value_sets)
+        db_model = ValueSetDBModel(db.valuesets)
         
         # Build MongoDB query
         query = {}
@@ -88,7 +88,7 @@ async def search_value_sets(
             query["$text"] = {"$search": _text}
         
         # Execute search with pagination
-        cursor = db.value_sets.find(query)
+        cursor = db.valuesets.find(query)
         
         # Apply sorting
         if _sort:
@@ -99,7 +99,7 @@ async def search_value_sets(
             cursor = cursor.sort(_sort, sort_direction)
         
         # Get total count
-        total = await db.value_sets.count_documents(query)
+        total = await db.valuesets.count_documents(query)
         
         # Apply pagination
         cursor = cursor.skip(_offset).limit(_count)
@@ -143,10 +143,10 @@ async def read_value_set(
     Returns FHIR R4 compliant ValueSet
     """
     try:
-        db_model = ValueSetDBModel(db.value_sets)
+        db_model = ValueSetDBModel(db.valuesets)
         
         # Find by MongoDB _id or by id field
-        doc = await db.value_sets.find_one({"$or": [{"_id": id}, {"id": id}]})
+        doc = await db.valuesets.find_one({"$or": [{"_id": id}, {"id": id}]})
         
         if not doc:
             raise HTTPException(
@@ -191,13 +191,13 @@ async def expand_value_set(
     Returns FHIR ValueSet with expansion containing matching concepts
     """
     try:
-        db_model = ValueSetDBModel(db.value_sets)
+        db_model = ValueSetDBModel(db.valuesets)
         
         # Find ValueSet
         if url:
-            doc = await db.value_sets.find_one({"url": url})
+            doc = await db.valuesets.find_one({"url": url})
         else:
-            doc = await db.value_sets.find_one({"$or": [{"_id": id}, {"id": id}]})
+            doc = await db.valuesets.find_one({"$or": [{"_id": id}, {"id": id}]})
         
         if not doc:
             raise HTTPException(
@@ -239,7 +239,7 @@ async def expand_value_set(
             elif include.get("valueSet"):
                 for vs_url in include["valueSet"]:
                     # Find referenced ValueSet and include its concepts
-                    ref_vs = await db.value_sets.find_one({"url": vs_url})
+                    ref_vs = await db.valuesets.find_one({"url": vs_url})
                     if ref_vs and ref_vs.get("expansion", {}).get("contains"):
                         for concept in ref_vs["expansion"]["contains"]:
                             if filter and filter.lower() not in (concept.get("display", "").lower()):
@@ -250,7 +250,7 @@ async def expand_value_set(
             elif include.get("filter"):
                 # Query CodeSystem for concepts matching filters
                 if include_system:
-                    code_system = await db.code_systems.find_one({"url": include_system})
+                    code_system = await db.codesystems.find_one({"url": include_system})
                     if code_system and code_system.get("concept"):
                         for concept in code_system["concept"]:
                             concept_data = {
@@ -336,13 +336,13 @@ async def validate_code_in_valueset(
     Returns FHIR Parameters resource with validation result
     """
     try:
-        db_model = ValueSetDBModel(db.value_sets)
+        db_model = ValueSetDBModel(db.valuesets)
         
         # Find ValueSet
         if url:
-            doc = await db.value_sets.find_one({"url": url})
+            doc = await db.valuesets.find_one({"url": url})
         else:
-            doc = await db.value_sets.find_one({"$or": [{"_id": id}, {"id": id}]})
+            doc = await db.valuesets.find_one({"$or": [{"_id": id}, {"id": id}]})
         
         if not doc:
             raise HTTPException(
@@ -386,7 +386,7 @@ async def validate_code_in_valueset(
                 
                 # Check if code exists in referenced CodeSystem
                 elif include_system and (not system or include_system == system):
-                    code_system = await db.code_systems.find_one({"url": include_system})
+                    code_system = await db.codesystems.find_one({"url": include_system})
                     if code_system and code_system.get("concept"):
                         for concept in code_system["concept"]:
                             if concept.get("code") == code:
@@ -481,13 +481,13 @@ async def search_namaste_value_sets(
         if traditional_category:
             query["traditional_category"] = {"$regex": traditional_category, "$options": "i"}
         
-        cursor = db.value_sets.find(query).skip(_offset).limit(_count)
+        cursor = db.valuesets.find(query).skip(_offset).limit(_count)
         results = await cursor.to_list(length=None)
-        total = await db.value_sets.count_documents(query)
+        total = await db.valuesets.count_documents(query)
         
         # Convert to Bundle
         entries = []
-        db_model = ValueSetDBModel(db.value_sets)
+        db_model = ValueSetDBModel(db.valuesets)
         
         for doc in results:
             value_set = db_model.from_dict(doc, NAMASTEValueSet)
@@ -523,11 +523,11 @@ async def create_value_set(
     Validates FHIR R4 compliance and stores in MongoDB
     """
     try:
-        db_model = ValueSetDBModel(db.value_sets)
+        db_model = ValueSetDBModel(db.valuesets)
         
         # Validate canonical URL uniqueness
         if value_set.url:
-            existing = await db.value_sets.find_one({
+            existing = await db.valuesets.find_one({
                 "url": value_set.url,
                 "version": value_set.version
             })
@@ -557,13 +557,13 @@ async def create_value_set(
         doc = db_model.to_dict(value_set)
         
         # Insert into database
-        result = await db.value_sets.insert_one(doc)
+        result = await db.valuesets.insert_one(doc)
         
         if not result.inserted_id:
             raise HTTPException(status_code=500, detail="Failed to create ValueSet")
         
         # Return created resource
-        created_doc = await db.value_sets.find_one({"_id": result.inserted_id})
+        created_doc = await db.valuesets.find_one({"_id": result.inserted_id})
         created_value_set = db_model.from_dict(created_doc, ValueSet)
         
         return created_value_set

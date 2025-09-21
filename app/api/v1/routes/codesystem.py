@@ -47,7 +47,7 @@ async def search_code_systems(
     Supports NAMASTE traditional medicine and WHO ICD-11 CodeSystems
     """
     try:
-        db_model = CodeSystemDBModel(db.code_systems)
+        db_model = CodeSystemDBModel(db.codesystems)
         
         # Build MongoDB query
         query = {}
@@ -76,7 +76,7 @@ async def search_code_systems(
             query["$text"] = {"$search": _text}
         
         # Execute search with pagination
-        cursor = db.code_systems.find(query)
+        cursor = db.codesystems.find(query)
         
         # Apply sorting
         if _sort:
@@ -87,7 +87,7 @@ async def search_code_systems(
             cursor = cursor.sort(_sort, sort_direction)
         
         # Get total count
-        total = await db.code_systems.count_documents(query)
+        total = await db.codesystems.count_documents(query)
         
         # Apply pagination
         cursor = cursor.skip(_offset).limit(_count)
@@ -131,10 +131,10 @@ async def read_code_system(
     Returns FHIR R4 compliant CodeSystem
     """
     try:
-        db_model = CodeSystemDBModel(db.code_systems)
+        db_model = CodeSystemDBModel(db.codesystems)
         
         # Find by MongoDB _id or by id field
-        doc = await db.code_systems.find_one({"$or": [{"_id": id}, {"id": id}]})
+        doc = await db.codesystems.find_one({"$or": [{"_id": id}, {"id": id}]})
         
         if not doc:
             raise HTTPException(
@@ -171,7 +171,7 @@ async def create_code_system(
     Validates FHIR R4 compliance and stores in MongoDB
     """
     try:
-        db_model = CodeSystemDBModel(db.code_systems)
+        db_model = CodeSystemDBModel(db.codesystems)
         
         # Validate canonical URL uniqueness
         if code_system.url:
@@ -202,13 +202,13 @@ async def create_code_system(
         doc = db_model.to_dict(code_system)
         
         # Insert into database
-        result = await db.code_systems.insert_one(doc)
+        result = await db.codesystems.insert_one(doc)
         
         if not result.inserted_id:
             raise HTTPException(status_code=500, detail="Failed to create CodeSystem")
         
         # Return created resource
-        created_doc = await db.code_systems.find_one({"_id": result.inserted_id})
+        created_doc = await db.codesystems.find_one({"_id": result.inserted_id})
         created_code_system = db_model.from_dict(created_doc, CodeSystem)
         
         return created_code_system
@@ -232,10 +232,10 @@ async def update_code_system(
     Performs full replacement with version increment
     """
     try:
-        db_model = CodeSystemDBModel(db.code_systems)
+        db_model = CodeSystemDBModel(db.codesystems)
         
         # Check if resource exists
-        existing_doc = await db.code_systems.find_one({"$or": [{"_id": id}, {"id": id}]})
+        existing_doc = await db.codesystems.find_one({"$or": [{"_id": id}, {"id": id}]})
         if not existing_doc:
             raise HTTPException(
                 status_code=404,
@@ -259,7 +259,7 @@ async def update_code_system(
         doc["updated_at"] = datetime.utcnow()
         
         # Update in database
-        result = await db.code_systems.replace_one(
+        result = await db.codesystems.replace_one(
             {"$or": [{"_id": id}, {"id": id}]},
             doc
         )
@@ -268,7 +268,7 @@ async def update_code_system(
             raise HTTPException(status_code=404, detail="CodeSystem not found")
         
         # Return updated resource
-        updated_doc = await db.code_systems.find_one({"id": id})
+        updated_doc = await db.codesystems.find_one({"id": id})
         updated_code_system = db_model.from_dict(updated_doc, CodeSystem)
         
         return updated_code_system
@@ -292,7 +292,7 @@ async def delete_code_system(
     """
     try:
         # Check if resource exists
-        existing_doc = await db.code_systems.find_one({"$or": [{"_id": id}, {"id": id}]})
+        existing_doc = await db.codesystems.find_one({"$or": [{"_id": id}, {"id": id}]})
         if not existing_doc:
             raise HTTPException(
                 status_code=404,
@@ -306,7 +306,7 @@ async def delete_code_system(
         # Perform deletion
         if settings.soft_delete:
             # Soft delete - mark as deleted
-            await db.code_systems.update_one(
+            await db.codesystems.update_one(
                 {"$or": [{"_id": id}, {"id": id}]},
                 {
                     "$set": {
@@ -318,7 +318,7 @@ async def delete_code_system(
             )
         else:
             # Hard delete
-            result = await db.code_systems.delete_one({"$or": [{"_id": id}, {"id": id}]})
+            result = await db.codesystems.delete_one({"$or": [{"_id": id}, {"id": id}]})
             if result.deleted_count == 0:
                 raise HTTPException(status_code=404, detail="CodeSystem not found")
         
@@ -348,13 +348,13 @@ async def validate_code(
     Returns FHIR Parameters resource with validation result
     """
     try:
-        db_model = CodeSystemDBModel(db.code_systems)
+        db_model = CodeSystemDBModel(db.codesystems)
         
         # Find CodeSystem
         if system:
             doc = await db_model.find_by_url(system)
         else:
-            doc = await db.code_systems.find_one({"$or": [{"_id": id}, {"id": id}]})
+            doc = await db.codesystems.find_one({"$or": [{"_id": id}, {"id": id}]})
         
         if not doc:
             raise HTTPException(
@@ -437,13 +437,13 @@ async def lookup_concept(
     Returns FHIR Parameters resource with concept information
     """
     try:
-        db_model = CodeSystemDBModel(db.code_systems)
+        db_model = CodeSystemDBModel(db.codesystems)
         
         # Find CodeSystem
         if system:
             doc = await db_model.find_by_url(system)
         else:
-            doc = await db.code_systems.find_one({"$or": [{"_id": id}, {"id": id}]})
+            doc = await db.codesystems.find_one({"$or": [{"_id": id}, {"id": id}]})
         
         if not doc:
             raise HTTPException(
@@ -563,13 +563,13 @@ async def search_namaste_code_systems(
         if dosha:
             query["namaste_concepts.ayurveda_properties.doshagnata"] = dosha
         
-        cursor = db.code_systems.find(query).skip(_offset).limit(_count)
+        cursor = db.codesystems.find(query).skip(_offset).limit(_count)
         results = await cursor.to_list(length=None)
-        total = await db.code_systems.count_documents(query)
+        total = await db.codesystems.count_documents(query)
         
         # Convert to Bundle
         entries = []
-        db_model = CodeSystemDBModel(db.code_systems)
+        db_model = CodeSystemDBModel(db.codesystems)
         
         for doc in results:
             code_system = db_model.from_dict(doc, NAMASTECodeSystem)
@@ -621,13 +621,13 @@ async def search_icd11_code_systems(
         if traditional_system:
             query["tm2_concepts.traditional_system"] = traditional_system
         
-        cursor = db.code_systems.find(query).skip(_offset).limit(_count)
+        cursor = db.codesystems.find(query).skip(_offset).limit(_count)
         results = await cursor.to_list(length=None)
-        total = await db.code_systems.count_documents(query)
+        total = await db.codesystems.count_documents(query)
         
         # Convert to Bundle
         entries = []
-        db_model = CodeSystemDBModel(db.code_systems)
+        db_model = CodeSystemDBModel(db.codesystems)
         
         for doc in results:
             code_system = db_model.from_dict(doc, ICD11CodeSystem)
