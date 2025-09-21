@@ -1,0 +1,166 @@
+{
+  "resourceType": "CodeSystem",
+  "id": "icd11-tm2",
+  "url": "http://terminology.ayushvardhan.com/CodeSystem/icd11-tm2",
+  "identifier": [
+    {
+      "use": "official",
+      "system": "http://terminology.ayushvardhan.com/identifiers",
+      "value": "ICD11-TM2"
+    }
+  ],
+  "version": "2024-01",
+  "name": "ICD11TM2CodeSystem",
+  "title": "WHO ICD-11 TM2 Module",
+  "status": "active",
+  "experimental": false,
+  "date": "2025-09-22T01:41:25.395603",
+  "publisher": "World Health Organization",
+  "contact": [
+    {
+      "name": "WHO ICD-11 Team",
+      "telecom": [
+        {
+          "system": "url",
+          "value": "https://icd.who.int"
+        }
+      ]
+    }
+  ],
+  "description": "WHO ICD-11 TM2 module integrated for traditional medicine and biomedical terminology mapping.",
+  "jurisdiction": [
+    {
+      "coding": [
+        {
+          "system": "http://unstats.un.org/unsd/methods/m49/m49.htm",
+          "code": "001",
+          "display": "World"
+        }
+      ]
+    }
+  ],
+  "purpose": "To provide WHO ICD-11 TM2 terminology for healthcare classification and traditional medicine integration.",
+  "copyright": "© 2024 World Health Organization. Used under license.",
+  "caseSensitive": true,
+  "valueSet": "http://terminology.ayushvardhan.com/ValueSet/icd11-tm2",
+  "hierarchyMeaning": "is-a",
+  "compositional": true,
+  "versionNeeded": false,
+  "content": "complete",
+  "count": 2,
+  "property": [
+    {
+      "code": "definition",
+      "description": "The definition of the code",
+      "type": "string"
+    },
+    {
+      "code": "longDefinition",
+      "description": "Extended definition with clinical details",
+      "type": "string"
+    },
+    {
+      "code": "browserUrl",
+      "description": "URL for browsing in WHO ICD-11 browser",
+      "type": "string"
+    }
+  ],
+  "concept": [
+    {
+      "code": "TM2.D",
+      "display": "Dosha Imbalance Patterns",
+      "definition": "Patterns of constitutional imbalance in Ayurvedic medicine",
+      "property": [
+        {
+          "code": "definition",
+          "valueString": "Patterns of constitutional imbalance in Ayurvedic medicine"
+        },
+        {
+          "code": "longDefinition",
+          "valueString": "Diagnostic patterns based on the three dosha theory of Ayurveda, including vata, pitta, and kapha imbalances"
+        },
+        {
+          "code": "browserUrl",
+          "valueString": "https://icd.who.int/browse11/l-m/en#/tm2-dosha-imbalance"
+        }
+      ],
+      "designation": [
+        {
+          "language": "en",
+          "use": {
+            "system": "http://snomed.info/sct",
+            "code": "900000000000013009",
+            "display": "Synonym"
+          },
+          "value": "Constitutional disorders"
+        },
+        {
+          "language": "en",
+          "use": {
+            "system": "http://snomed.info/sct",
+            "code": "900000000000013009",
+            "display": "Synonym"
+          },
+          "value": "Dosha disorders"
+        },
+        {
+          "language": "en",
+          "use": {
+            "system": "http://snomed.info/sct",
+            "code": "900000000000013009",
+            "display": "Synonym"
+          },
+          "value": "Tridosha imbalance"
+        }
+      ]
+    },
+    {
+      "code": "TM2.Q",
+      "display": "Qi Stagnation Patterns",
+      "definition": "Patterns of energy stagnation in Traditional Chinese Medicine",
+      "property": [
+        {
+          "code": "definition",
+          "valueString": "Patterns of energy stagnation in Traditional Chinese Medicine"
+        },
+        {
+          "code": "longDefinition",
+          "valueString": "Diagnostic patterns based on Traditional Chinese Medicine theory of qi (vital energy) stagnation leading to various symptoms and conditions"
+        },
+        {
+          "code": "browserUrl",
+          "valueString": "https://icd.who.int/browse11/l-m/en#/tm2-qi-stagnation"
+        }
+      ],
+      "designation": [
+        {
+          "language": "en",
+          "use": {
+            "system": "http://snomed.info/sct",
+            "code": "900000000000013009",
+            "display": "Synonym"
+          },
+          "value": "Energy stagnation"
+        },
+        {
+          "language": "en",
+          "use": {
+            "system": "http://snomed.info/sct",
+            "code": "900000000000013009",
+            "display": "Synonym"
+          },
+          "value": "Qi blockage"
+        },
+        {
+          "language": "en",
+          "use": {
+            "system": "http://snomed.info/sct",
+            "code": "900000000000013009",
+            "display": "Synonym"
+          },
+          "value": "Vital energy disorders"
+        }
+      ]
+    }
+  ]
+}

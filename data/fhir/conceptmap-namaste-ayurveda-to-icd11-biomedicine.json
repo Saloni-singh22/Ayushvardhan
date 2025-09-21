@@ -1,0 +1,142 @@
+{
+  "resourceType": "ConceptMap",
+  "id": "conceptmap-namaste-ayurveda-to-icd11-biomedicine",
+  "url": "http://terminology.ayushvardhan.com/ConceptMap/namaste-ayurveda-to-icd11-biomedicine",
+  "identifier": [
+    {
+      "use": "official",
+      "system": "http://terminology.ayushvardhan.com/identifiers",
+      "value": "CONCEPTMAP-NAMASTE-AYURVEDA-TO-ICD11-BIOMEDICINE"
+    }
+  ],
+  "version": "1.0.0",
+  "name": "ConceptMapNamaste-AyurvedaToIcd11-Biomedicine",
+  "title": "Concept Map: Namaste-Ayurveda to Icd11-Biomedicine Biomedical Classification",
+  "status": "active",
+  "experimental": false,
+  "date": "2025-09-22T01:43:37.131087",
+  "publisher": "AYUSH-WHO Terminology Integration Project",
+  "contact": [
+    {
+      "name": "Traditional Medicine Terminology Team",
+      "telecom": [
+        {
+          "system": "email",
+          "value": "terminology@ayushvardhan.com"
+        }
+      ]
+    }
+  ],
+  "description": "Concept mappings between Namaste-Ayurveda traditional medicine codes and Icd11-Biomedicine Biomedical Classification for dual-coding support.",
+  "jurisdiction": [
+    {
+      "coding": [
+        {
+          "system": "urn:iso:std:iso:3166",
+          "code": "IN",
+          "display": "India"
+        }
+      ]
+    }
+  ],
+  "purpose": "To enable dual-coding between traditional medicine (namaste-ayurveda) and biomedical/WHO terminology (icd11-biomedicine) systems.",
+  "copyright": "© 2024 AYUSH Ministry & WHO. Licensed under Creative Commons.",
+  "sourceUri": "http://terminology.ayushvardhan.com/CodeSystem/namaste-ayurveda",
+  "targetUri": "http://terminology.ayushvardhan.com/CodeSystem/icd11-biomedicine",
+  "group": [
+    {
+      "source": "http://terminology.ayushvardhan.com/CodeSystem/namaste-ayurveda",
+      "target": "http://terminology.ayushvardhan.com/CodeSystem/icd11-biomedicine",
+      "element": [
+        {
+          "code": "AYU-H-001",
+          "display": "Ashwagandha (Withania somnifera)",
+          "target": [
+            {
+              "code": "6A00-6E8Z",
+              "display": "Mental, behavioural or neurodevelopmental disorders",
+              "equivalence": "relatedto",
+              "comment": "Ashwagandha is traditionally used for stress and anxiety, relating to mental health disorders",
+              "dependsOn": [
+                {
+                  "property": "confidence",
+                  "value": "0.8"
+                },
+                {
+                  "property": "evidence_level",
+                  "value": "Clinical studies"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "code": "AYU-H-002",
+          "display": "Brahmi (Bacopa monnieri)",
+          "target": [
+            {
+              "code": "6A00-6E8Z",
+              "display": "Mental, behavioural or neurodevelopmental disorders",
+              "equivalence": "relatedto",
+              "comment": "Brahmi is used for cognitive enhancement and memory improvement",
+              "dependsOn": [
+                {
+                  "property": "confidence",
+                  "value": "0.85"
+                },
+                {
+                  "property": "evidence_level",
+                  "value": "Clinical studies"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "code": "AYU-F-001",
+          "display": "Triphala Churna",
+          "target": [
+            {
+              "code": "11A00-11G9Z",
+              "display": "Diseases of the digestive system",
+              "equivalence": "relatedto",
+              "comment": "Triphala is primarily used for digestive health and gastrointestinal disorders",
+              "dependsOn": [
+                {
+                  "property": "confidence",
+                  "value": "0.9"
+                },
+                {
+                  "property": "evidence_level",
+                  "value": "Traditional evidence"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "code": "AYU-T-001",
+          "display": "Panchakarma Detoxification",
+          "target": [
+            {
+              "code": "11A00-11G9Z",
+              "display": "Diseases of the digestive system",
+              "equivalence": "relatedto",
+              "comment": "Panchakarma includes digestive detoxification procedures",
+              "dependsOn": [
+                {
+                  "property": "confidence",
+                  "value": "0.75"
+                },
+                {
+                  "property": "evidence_level",
+                  "value": "Traditional evidence"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

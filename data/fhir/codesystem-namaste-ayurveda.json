@@ -1,0 +1,241 @@
+{
+  "resourceType": "CodeSystem",
+  "id": "namaste-ayurveda",
+  "url": "http://terminology.ayushvardhan.com/CodeSystem/namaste-ayurveda",
+  "identifier": [
+    {
+      "use": "official",
+      "system": "http://terminology.ayushvardhan.com/identifiers",
+      "value": "NAMASTE-AYURVEDA"
+    }
+  ],
+  "version": "1.0.0",
+  "name": "NAMASTEAyurvedaCodeSystem",
+  "title": "NAMASTE Ayurveda Traditional Medicine Codes",
+  "status": "active",
+  "experimental": false,
+  "date": "2025-09-22T01:39:35.748557",
+  "publisher": "AYUSH Ministry, Government of India",
+  "contact": [
+    {
+      "name": "NAMASTE Project Team",
+      "telecom": [
+        {
+          "system": "url",
+          "value": "http://namaste.gov.in"
+        }
+      ]
+    }
+  ],
+  "description": "NAMASTE standardized codes for Ayurveda traditional medicine including herbs, formulations, treatments, and diagnoses.",
+  "jurisdiction": [
+    {
+      "coding": [
+        {
+          "system": "urn:iso:std:iso:3166",
+          "code": "IN",
+          "display": "India"
+        }
+      ]
+    }
+  ],
+  "purpose": "To provide standardized terminology for Ayurveda traditional medicine practice in India.",
+  "copyright": "© 2024 AYUSH Ministry, Government of India. All rights reserved.",
+  "caseSensitive": true,
+  "valueSet": "http://terminology.ayushvardhan.com/ValueSet/namaste-ayurveda",
+  "hierarchyMeaning": "grouped-by",
+  "compositional": false,
+  "versionNeeded": false,
+  "content": "complete",
+  "count": 5,
+  "property": [
+    {
+      "code": "category",
+      "description": "The category of the traditional medicine item",
+      "type": "string"
+    },
+    {
+      "code": "therapeutic_area",
+      "description": "Primary therapeutic area or indication",
+      "type": "string"
+    },
+    {
+      "code": "safety_profile",
+      "description": "Safety profile and precautions",
+      "type": "string"
+    },
+    {
+      "code": "evidence_level",
+      "description": "Level of scientific evidence",
+      "type": "string"
+    },
+    {
+      "code": "doshas",
+      "description": "Associated doshas (vata, pitta, kapha)",
+      "type": "string"
+    },
+    {
+      "code": "taste",
+      "description": "Rasa (taste) according to Ayurveda",
+      "type": "string"
+    },
+    {
+      "code": "potency",
+      "description": "Virya (potency) - hot or cold",
+      "type": "string"
+    }
+  ],
+  "concept": [
+    {
+      "code": "AYU-H-001",
+      "display": "Ashwagandha (Withania somnifera)",
+      "definition": "Ayurveda herb: Ashwagandha (Withania somnifera)",
+      "property": [
+        {
+          "code": "category",
+          "valueString": "herb"
+        },
+        {
+          "code": "therapeutic_area",
+          "valueString": "Stress and Immunity"
+        },
+        {
+          "code": "safety_profile",
+          "valueString": "Generally safe with standard dosage"
+        },
+        {
+          "code": "evidence_level",
+          "valueString": "High"
+        },
+        {
+          "code": "doshas",
+          "valueString": "vata, kapha"
+        },
+        {
+          "code": "taste",
+          "valueString": "bitter, astringent"
+        },
+        {
+          "code": "potency",
+          "valueString": "hot"
+        }
+      ]
+    },
+    {
+      "code": "AYU-H-002",
+      "display": "Brahmi (Bacopa monnieri)",
+      "definition": "Ayurveda herb: Brahmi (Bacopa monnieri)",
+      "property": [
+        {
+          "code": "category",
+          "valueString": "herb"
+        },
+        {
+          "code": "therapeutic_area",
+          "valueString": "Cognitive Enhancement"
+        },
+        {
+          "code": "safety_profile",
+          "valueString": "Safe with recommended dosage"
+        },
+        {
+          "code": "evidence_level",
+          "valueString": "High"
+        },
+        {
+          "code": "doshas",
+          "valueString": "pitta, vata"
+        },
+        {
+          "code": "taste",
+          "valueString": "bitter, astringent"
+        },
+        {
+          "code": "potency",
+          "valueString": "cold"
+        }
+      ]
+    },
+    {
+      "code": "AYU-F-001",
+      "display": "Triphala Churna",
+      "definition": "Ayurveda formulation: Triphala Churna",
+      "property": [
+        {
+          "code": "category",
+          "valueString": "formulation"
+        },
+        {
+          "code": "therapeutic_area",
+          "valueString": "Digestive Health"
+        },
+        {
+          "code": "safety_profile",
+          "valueString": "Safe for long-term use"
+        },
+        {
+          "code": "evidence_level",
+          "valueString": "High"
+        },
+        {
+          "code": "doshas",
+          "valueString": "vata, pitta, kapha"
+        }
+      ]
+    },
+    {
+      "code": "AYU-T-001",
+      "display": "Panchakarma Detoxification",
+      "definition": "Ayurveda treatment: Panchakarma Detoxification",
+      "property": [
+        {
+          "code": "category",
+          "valueString": "treatment"
+        },
+        {
+          "code": "therapeutic_area",
+          "valueString": "Detoxification and Rejuvenation"
+        },
+        {
+          "code": "safety_profile",
+          "valueString": "Requires expert supervision"
+        },
+        {
+          "code": "evidence_level",
+          "valueString": "Traditional"
+        },
+        {
+          "code": "doshas",
+          "valueString": "vata, pitta, kapha"
+        }
+      ]
+    },
+    {
+      "code": "AYU-D-001",
+      "display": "Vata Dosha Imbalance",
+      "definition": "Ayurveda diagnosis: Vata Dosha Imbalance",
+      "property": [
+        {
+          "code": "category",
+          "valueString": "diagnosis"
+        },
+        {
+          "code": "therapeutic_area",
+          "valueString": "Constitutional Medicine"
+        },
+        {
+          "code": "safety_profile",
+          "valueString": "Diagnostic category"
+        },
+        {
+          "code": "evidence_level",
+          "valueString": "Traditional"
+        },
+        {
+          "code": "doshas",
+          "valueString": "vata"
+        }
+      ]
+    }
+  ]
+}

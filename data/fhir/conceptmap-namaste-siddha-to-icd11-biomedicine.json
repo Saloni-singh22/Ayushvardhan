@@ -1,0 +1,76 @@
+{
+  "resourceType": "ConceptMap",
+  "id": "conceptmap-namaste-siddha-to-icd11-biomedicine",
+  "url": "http://terminology.ayushvardhan.com/ConceptMap/namaste-siddha-to-icd11-biomedicine",
+  "identifier": [
+    {
+      "use": "official",
+      "system": "http://terminology.ayushvardhan.com/identifiers",
+      "value": "CONCEPTMAP-NAMASTE-SIDDHA-TO-ICD11-BIOMEDICINE"
+    }
+  ],
+  "version": "1.0.0",
+  "name": "ConceptMapNamaste-SiddhaToIcd11-Biomedicine",
+  "title": "Concept Map: Namaste-Siddha to Icd11-Biomedicine Biomedical Classification",
+  "status": "active",
+  "experimental": false,
+  "date": "2025-09-22T01:43:37.131087",
+  "publisher": "AYUSH-WHO Terminology Integration Project",
+  "contact": [
+    {
+      "name": "Traditional Medicine Terminology Team",
+      "telecom": [
+        {
+          "system": "email",
+          "value": "terminology@ayushvardhan.com"
+        }
+      ]
+    }
+  ],
+  "description": "Concept mappings between Namaste-Siddha traditional medicine codes and Icd11-Biomedicine Biomedical Classification for dual-coding support.",
+  "jurisdiction": [
+    {
+      "coding": [
+        {
+          "system": "urn:iso:std:iso:3166",
+          "code": "IN",
+          "display": "India"
+        }
+      ]
+    }
+  ],
+  "purpose": "To enable dual-coding between traditional medicine (namaste-siddha) and biomedical/WHO terminology (icd11-biomedicine) systems.",
+  "copyright": "© 2024 AYUSH Ministry & WHO. Licensed under Creative Commons.",
+  "sourceUri": "http://terminology.ayushvardhan.com/CodeSystem/namaste-siddha",
+  "targetUri": "http://terminology.ayushvardhan.com/CodeSystem/icd11-biomedicine",
+  "group": [
+    {
+      "source": "http://terminology.ayushvardhan.com/CodeSystem/namaste-siddha",
+      "target": "http://terminology.ayushvardhan.com/CodeSystem/icd11-biomedicine",
+      "element": [
+        {
+          "code": "SID-H-001",
+          "display": "Nilavembu (Andrographis paniculata)",
+          "target": [
+            {
+              "code": "1A00-1F9Z",
+              "display": "Certain infectious and parasitic diseases",
+              "equivalence": "relatedto",
+              "comment": "Nilavembu is traditionally used for fever and infections",
+              "dependsOn": [
+                {
+                  "property": "confidence",
+                  "value": "0.85"
+                },
+                {
+                  "property": "evidence_level",
+                  "value": "Clinical studies"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,121 @@
+{
+  "resourceType": "CodeSystem",
+  "id": "namaste-siddha",
+  "url": "http://terminology.ayushvardhan.com/CodeSystem/namaste-siddha",
+  "identifier": [
+    {
+      "use": "official",
+      "system": "http://terminology.ayushvardhan.com/identifiers",
+      "value": "NAMASTE-SIDDHA"
+    }
+  ],
+  "version": "1.0.0",
+  "name": "NAMASTESiddhaCodeSystem",
+  "title": "NAMASTE Siddha Traditional Medicine Codes",
+  "status": "active",
+  "experimental": false,
+  "date": "2025-09-22T01:39:35.750538",
+  "publisher": "AYUSH Ministry, Government of India",
+  "contact": [
+    {
+      "name": "NAMASTE Project Team",
+      "telecom": [
+        {
+          "system": "url",
+          "value": "http://namaste.gov.in"
+        }
+      ]
+    }
+  ],
+  "description": "NAMASTE standardized codes for Siddha traditional medicine including herbs, formulations, treatments, and diagnoses.",
+  "jurisdiction": [
+    {
+      "coding": [
+        {
+          "system": "urn:iso:std:iso:3166",
+          "code": "IN",
+          "display": "India"
+        }
+      ]
+    }
+  ],
+  "purpose": "To provide standardized terminology for Siddha traditional medicine practice in India.",
+  "copyright": "© 2024 AYUSH Ministry, Government of India. All rights reserved.",
+  "caseSensitive": true,
+  "valueSet": "http://terminology.ayushvardhan.com/ValueSet/namaste-siddha",
+  "hierarchyMeaning": "grouped-by",
+  "compositional": false,
+  "versionNeeded": false,
+  "content": "complete",
+  "count": 2,
+  "property": [
+    {
+      "code": "category",
+      "description": "The category of the traditional medicine item",
+      "type": "string"
+    },
+    {
+      "code": "therapeutic_area",
+      "description": "Primary therapeutic area or indication",
+      "type": "string"
+    },
+    {
+      "code": "safety_profile",
+      "description": "Safety profile and precautions",
+      "type": "string"
+    },
+    {
+      "code": "evidence_level",
+      "description": "Level of scientific evidence",
+      "type": "string"
+    }
+  ],
+  "concept": [
+    {
+      "code": "SID-H-001",
+      "display": "Nilavembu (Andrographis paniculata)",
+      "definition": "Siddha herb: Nilavembu (Andrographis paniculata)",
+      "property": [
+        {
+          "code": "category",
+          "valueString": "herb"
+        },
+        {
+          "code": "therapeutic_area",
+          "valueString": "Fever and Infections"
+        },
+        {
+          "code": "safety_profile",
+          "valueString": "Safe with standard dosage"
+        },
+        {
+          "code": "evidence_level",
+          "valueString": "Medium"
+        }
+      ]
+    },
+    {
+      "code": "SID-F-001",
+      "display": "Sanjeevi Mathirai",
+      "definition": "Siddha formulation: Sanjeevi Mathirai",
+      "property": [
+        {
+          "code": "category",
+          "valueString": "formulation"
+        },
+        {
+          "code": "therapeutic_area",
+          "valueString": "General Health and Longevity"
+        },
+        {
+          "code": "safety_profile",
+          "valueString": "Requires expert preparation"
+        },
+        {
+          "code": "evidence_level",
+          "valueString": "Traditional"
+        }
+      ]
+    }
+  ]
+}

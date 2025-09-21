@@ -1,0 +1,166 @@
+{
+  "resourceType": "CodeSystem",
+  "id": "icd11-biomedicine",
+  "url": "http://terminology.ayushvardhan.com/CodeSystem/icd11-biomedicine",
+  "identifier": [
+    {
+      "use": "official",
+      "system": "http://terminology.ayushvardhan.com/identifiers",
+      "value": "ICD11-BIOMEDICINE"
+    }
+  ],
+  "version": "2024-01",
+  "name": "ICD11BiomedicineCodeSystem",
+  "title": "WHO ICD-11 Biomedicine Module",
+  "status": "active",
+  "experimental": false,
+  "date": "2025-09-22T01:41:25.396601",
+  "publisher": "World Health Organization",
+  "contact": [
+    {
+      "name": "WHO ICD-11 Team",
+      "telecom": [
+        {
+          "system": "url",
+          "value": "https://icd.who.int"
+        }
+      ]
+    }
+  ],
+  "description": "WHO ICD-11 Biomedicine module integrated for traditional medicine and biomedical terminology mapping.",
+  "jurisdiction": [
+    {
+      "coding": [
+        {
+          "system": "http://unstats.un.org/unsd/methods/m49/m49.htm",
+          "code": "001",
+          "display": "World"
+        }
+      ]
+    }
+  ],
+  "purpose": "To provide WHO ICD-11 Biomedicine terminology for healthcare classification and traditional medicine integration.",
+  "copyright": "© 2024 World Health Organization. Used under license.",
+  "caseSensitive": true,
+  "valueSet": "http://terminology.ayushvardhan.com/ValueSet/icd11-biomedicine",
+  "hierarchyMeaning": "is-a",
+  "compositional": true,
+  "versionNeeded": false,
+  "content": "complete",
+  "count": 2,
+  "property": [
+    {
+      "code": "definition",
+      "description": "The definition of the code",
+      "type": "string"
+    },
+    {
+      "code": "longDefinition",
+      "description": "Extended definition with clinical details",
+      "type": "string"
+    },
+    {
+      "code": "browserUrl",
+      "description": "URL for browsing in WHO ICD-11 browser",
+      "type": "string"
+    }
+  ],
+  "concept": [
+    {
+      "code": "11A00-11G9Z",
+      "display": "Diseases of the digestive system",
+      "definition": "Disorders affecting the gastrointestinal tract",
+      "property": [
+        {
+          "code": "definition",
+          "valueString": "Disorders affecting the gastrointestinal tract"
+        },
+        {
+          "code": "longDefinition",
+          "valueString": "This chapter includes diseases of the digestive system including the oral cavity, esophagus, stomach, small and large intestine, liver, gallbladder, and pancreas"
+        },
+        {
+          "code": "browserUrl",
+          "valueString": "https://icd.who.int/browse11/l-m/en#/bio-digestive-disorders"
+        }
+      ],
+      "designation": [
+        {
+          "language": "en",
+          "use": {
+            "system": "http://snomed.info/sct",
+            "code": "900000000000013009",
+            "display": "Synonym"
+          },
+          "value": "GI disorders"
+        },
+        {
+          "language": "en",
+          "use": {
+            "system": "http://snomed.info/sct",
+            "code": "900000000000013009",
+            "display": "Synonym"
+          },
+          "value": "Gastrointestinal diseases"
+        },
+        {
+          "language": "en",
+          "use": {
+            "system": "http://snomed.info/sct",
+            "code": "900000000000013009",
+            "display": "Synonym"
+          },
+          "value": "Digestive tract diseases"
+        }
+      ]
+    },
+    {
+      "code": "6A00-6E8Z",
+      "display": "Mental, behavioural or neurodevelopmental disorders",
+      "definition": "Disorders of psychological functioning",
+      "property": [
+        {
+          "code": "definition",
+          "valueString": "Disorders of psychological functioning"
+        },
+        {
+          "code": "longDefinition",
+          "valueString": "Mental and behavioural disorders comprise a broad range of problems, with different symptoms"
+        },
+        {
+          "code": "browserUrl",
+          "valueString": "https://icd.who.int/browse11/l-m/en#/bio-mental-disorders"
+        }
+      ],
+      "designation": [
+        {
+          "language": "en",
+          "use": {
+            "system": "http://snomed.info/sct",
+            "code": "900000000000013009",
+            "display": "Synonym"
+          },
+          "value": "Psychiatric disorders"
+        },
+        {
+          "language": "en",
+          "use": {
+            "system": "http://snomed.info/sct",
+            "code": "900000000000013009",
+            "display": "Synonym"
+          },
+          "value": "Psychological disorders"
+        },
+        {
+          "language": "en",
+          "use": {
+            "system": "http://snomed.info/sct",
+            "code": "900000000000013009",
+            "display": "Synonym"
+          },
+          "value": "Behavioral disorders"
+        }
+      ]
+    }
+  ]
+}

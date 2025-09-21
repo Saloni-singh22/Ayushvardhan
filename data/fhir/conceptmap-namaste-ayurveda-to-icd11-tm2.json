@@ -1,0 +1,76 @@
+{
+  "resourceType": "ConceptMap",
+  "id": "conceptmap-namaste-ayurveda-to-icd11-tm2",
+  "url": "http://terminology.ayushvardhan.com/ConceptMap/namaste-ayurveda-to-icd11-tm2",
+  "identifier": [
+    {
+      "use": "official",
+      "system": "http://terminology.ayushvardhan.com/identifiers",
+      "value": "CONCEPTMAP-NAMASTE-AYURVEDA-TO-ICD11-TM2"
+    }
+  ],
+  "version": "1.0.0",
+  "name": "ConceptMapNamaste-AyurvedaToIcd11-Tm2",
+  "title": "Concept Map: Namaste-Ayurveda to Icd11-Tm2 Traditional Medicine",
+  "status": "active",
+  "experimental": false,
+  "date": "2025-09-22T01:43:37.130077",
+  "publisher": "AYUSH-WHO Terminology Integration Project",
+  "contact": [
+    {
+      "name": "Traditional Medicine Terminology Team",
+      "telecom": [
+        {
+          "system": "email",
+          "value": "terminology@ayushvardhan.com"
+        }
+      ]
+    }
+  ],
+  "description": "Concept mappings between Namaste-Ayurveda traditional medicine codes and Icd11-Tm2 Traditional Medicine for dual-coding support.",
+  "jurisdiction": [
+    {
+      "coding": [
+        {
+          "system": "urn:iso:std:iso:3166",
+          "code": "IN",
+          "display": "India"
+        }
+      ]
+    }
+  ],
+  "purpose": "To enable dual-coding between traditional medicine (namaste-ayurveda) and biomedical/WHO terminology (icd11-tm2) systems.",
+  "copyright": "© 2024 AYUSH Ministry & WHO. Licensed under Creative Commons.",
+  "sourceUri": "http://terminology.ayushvardhan.com/CodeSystem/namaste-ayurveda",
+  "targetUri": "http://terminology.ayushvardhan.com/CodeSystem/icd11-tm2",
+  "group": [
+    {
+      "source": "http://terminology.ayushvardhan.com/CodeSystem/namaste-ayurveda",
+      "target": "http://terminology.ayushvardhan.com/CodeSystem/icd11-tm2",
+      "element": [
+        {
+          "code": "AYU-D-001",
+          "display": "Vata Dosha Imbalance",
+          "target": [
+            {
+              "code": "TM2.D",
+              "display": "Dosha Imbalance Patterns",
+              "equivalence": "specializes",
+              "comment": "Vata dosha imbalance is a specific type of dosha imbalance pattern in Ayurveda",
+              "dependsOn": [
+                {
+                  "property": "confidence",
+                  "value": "0.95"
+                },
+                {
+                  "property": "evidence_level",
+                  "value": "Expert consensus"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
