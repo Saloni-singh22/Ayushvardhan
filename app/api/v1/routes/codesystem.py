@@ -9,15 +9,15 @@ from fastapi.responses import JSONResponse
 from datetime import datetime
 import logging
 
-from ...core.config import get_settings
-from ...database.connection import get_database
-from ...models.fhir.resources import CodeSystem, Bundle, BundleEntry
-from ...models.namaste.traditional_medicine import NAMASTECodeSystem, AyushSystemEnum
-from ...models.who.icd11 import ICD11CodeSystem, ICD11ModuleEnum
-from ...models.database import CodeSystemDBModel
-from ...middlewares.auth_middleware import get_current_user
-from ...utils.fhir_utils import create_operation_outcome, create_bundle_response
-from ...utils.pagination import PaginationParams, paginate_results
+from app.core.config import get_settings
+from app.database.connection import get_database
+from app.models.fhir.resources import CodeSystem, Bundle, BundleEntry
+from app.models.namaste.traditional_medicine import NAMASTECodeSystem, AyushSystemEnum
+from app.models.who.icd11 import ICD11CodeSystem, ICD11ModuleEnum
+from app.models.database import CodeSystemDBModel
+from app.middlewares.auth_middleware import get_current_user
+from app.utils.fhir_utils import create_operation_outcome, create_bundle_response
+from app.utils.pagination import PaginationParams, paginate_results
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/CodeSystem", tags=["CodeSystem"])
@@ -29,10 +29,10 @@ async def search_code_systems(
     url: Optional[str] = Query(None, description="Canonical URL of the CodeSystem"),
     name: Optional[str] = Query(None, description="Computer-friendly name"),
     title: Optional[str] = Query(None, description="Human-friendly title"),
-    status: Optional[str] = Query(None, description="Publication status", regex="^(draft|active|retired|unknown)$"),
+    status: Optional[str] = Query(None, description="Publication status", pattern="^(draft|active|retired|unknown)$"),
     publisher: Optional[str] = Query(None, description="Publisher name"),
     jurisdiction: Optional[str] = Query(None, description="Jurisdiction code"),
-    content: Optional[str] = Query(None, description="Content type", regex="^(not-present|example|fragment|complete|supplement)$"),
+    content: Optional[str] = Query(None, description="Content type", pattern="^(not-present|example|fragment|complete|supplement)$"),
     ayush_system: Optional[AyushSystemEnum] = Query(None, description="AYUSH system filter for NAMASTE CodeSystems"),
     icd11_module: Optional[ICD11ModuleEnum] = Query(None, description="ICD-11 module filter"),
     _text: Optional[str] = Query(None, description="Full-text search", alias="_text"),
@@ -192,7 +192,7 @@ async def create_code_system(
             code_system.id = str(ObjectId())
         
         if not code_system.meta:
-            from ..models.fhir.base import Meta
+            from app.models.fhir.base import Meta
             code_system.meta = Meta(
                 versionId="1",
                 lastUpdated=datetime.utcnow()

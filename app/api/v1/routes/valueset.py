@@ -10,14 +10,14 @@ from fastapi.responses import JSONResponse
 from datetime import datetime
 import logging
 
-from ...core.config import get_settings
-from ...database.connection import get_database
-from ...models.fhir.resources import ValueSet, Bundle, BundleEntry
-from ...models.namaste.traditional_medicine import NAMASTEValueSet
-from ...models.database import ValueSetDBModel
-from ...middlewares.auth_middleware import get_current_user
-from ...utils.fhir_utils import create_operation_outcome, create_bundle_response
-from ...utils.pagination import PaginationParams, paginate_results
+from app.core.config import get_settings
+from app.database.connection import get_database
+from app.models.fhir.resources import ValueSet, Bundle, BundleEntry
+from app.models.namaste.traditional_medicine import NAMASTEValueSet
+from app.models.database import ValueSetDBModel
+from app.middlewares.auth_middleware import get_current_user
+from app.utils.fhir_utils import create_operation_outcome, create_bundle_response
+from app.utils.pagination import PaginationParams, paginate_results
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/ValueSet", tags=["ValueSet"])
@@ -29,7 +29,7 @@ async def search_value_sets(
     url: Optional[str] = Query(None, description="Canonical URL of the ValueSet"),
     name: Optional[str] = Query(None, description="Computer-friendly name"),
     title: Optional[str] = Query(None, description="Human-friendly title"),
-    status: Optional[str] = Query(None, description="Publication status", regex="^(draft|active|retired|unknown)$"),
+    status: Optional[str] = Query(None, description="Publication status", pattern="^(draft|active|retired|unknown)$"),
     publisher: Optional[str] = Query(None, description="Publisher name"),
     expansion: Optional[str] = Query(None, description="Value set expansion identifier"),
     code: Optional[str] = Query(None, description="Code contained in the value set"),
@@ -547,7 +547,7 @@ async def create_value_set(
             value_set.id = str(ObjectId())
         
         if not value_set.meta:
-            from ...models.fhir.base import Meta
+            from app.models.fhir.base import Meta
             value_set.meta = Meta(
                 versionId="1",
                 lastUpdated=datetime.utcnow()

@@ -10,15 +10,15 @@ from fastapi.responses import JSONResponse
 from datetime import datetime
 import logging
 
-from ...core.config import get_settings
-from ...database.connection import get_database
-from ...models.fhir.resources import ConceptMap, Bundle, BundleEntry
-from ...models.namaste.traditional_medicine import NAMASTEConceptMap, DualCodingConcept
-from ...models.who.icd11 import ICD11ConceptMap, ICD11ToNAMASTEMapping
-from ...models.database import ConceptMapDBModel
-from ...middlewares.auth_middleware import get_current_user
-from ...utils.fhir_utils import create_operation_outcome, create_bundle_response
-from ...utils.pagination import PaginationParams, paginate_results
+from app.core.config import get_settings
+from app.database.connection import get_database
+from app.models.fhir.resources import ConceptMap, Bundle, BundleEntry
+from app.models.namaste.traditional_medicine import NAMASTEConceptMap, DualCodingConcept
+from app.models.who.icd11 import ICD11ConceptMap, ICD11ToNAMASTEMapping
+from app.models.database import ConceptMapDBModel
+from app.middlewares.auth_middleware import get_current_user
+from app.utils.fhir_utils import create_operation_outcome, create_bundle_response
+from app.utils.pagination import PaginationParams, paginate_results
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/ConceptMap", tags=["ConceptMap"])
@@ -30,7 +30,7 @@ async def search_concept_maps(
     url: Optional[str] = Query(None, description="Canonical URL of the ConceptMap"),
     name: Optional[str] = Query(None, description="Computer-friendly name"),
     title: Optional[str] = Query(None, description="Human-friendly title"),
-    status: Optional[str] = Query(None, description="Publication status", regex="^(draft|active|retired|unknown)$"),
+    status: Optional[str] = Query(None, description="Publication status", pattern="^(draft|active|retired|unknown)$"),
     source: Optional[str] = Query(None, description="Source ValueSet or CodeSystem"),
     target: Optional[str] = Query(None, description="Target ValueSet or CodeSystem"),
     source_code: Optional[str] = Query(None, description="Source concept code", alias="source-code"),
@@ -201,7 +201,7 @@ async def create_concept_map(
             concept_map.id = str(ObjectId())
         
         if not concept_map.meta:
-            from ...models.fhir.base import Meta
+            from app.models.fhir.base import Meta
             concept_map.meta = Meta(
                 versionId="1",
                 lastUpdated=datetime.utcnow()

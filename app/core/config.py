@@ -7,7 +7,7 @@ import os
 from functools import lru_cache
 from typing import List, Optional
 
-from pydantic import Field, validator
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings
 
 
@@ -26,7 +26,7 @@ class Settings(BaseSettings):
     reload: bool = Field(default=False, env="RELOAD")
     
     # Database Configuration - MongoDB
-    mongodb_url: str = Field(env="MONGODB_URL")
+    mongodb_url: str = Field(default="mongodb://localhost:27017", env="MONGODB_URL")
     mongodb_database: str = Field(default="namaste_icd11_db", env="MONGODB_DATABASE")
     mongodb_min_connections: int = Field(default=10, env="MONGODB_MIN_CONNECTIONS")
     mongodb_max_connections: int = Field(default=100, env="MONGODB_MAX_CONNECTIONS")
@@ -36,20 +36,20 @@ class Settings(BaseSettings):
         default="https://icd.who.int/icdapi", 
         env="WHO_ICD_API_BASE_URL"
     )
-    who_icd_api_key: str = Field(env="WHO_ICD_API_KEY")
+    who_icd_api_key: str = Field(default="demo_key", env="WHO_ICD_API_KEY")
     who_icd_api_version: str = Field(default="v2", env="WHO_ICD_API_VERSION")
-    who_client_id: str = Field(env="WHO_CLIENT_ID")
-    who_client_secret: str = Field(env="WHO_CLIENT_SECRET")
+    who_client_id: str = Field(default="8237d65d-ff79-4de1-98a7-a0af96a555a9_939cdbf7-938d-474f-9825-eafec1575f75", env="WHO_CLIENT_ID")
+    who_client_secret: str = Field(default="J1heyJHJGRyEb5CJ6ykeS/HvdscMK/00rOwZwTd45YY=", env="WHO_CLIENT_SECRET")
     
     # ABHA (Ayushman Bharat Digital Mission) Configuration
     abha_base_url: str = Field(
         default="https://dev.abdm.gov.in", 
         env="ABHA_BASE_URL"
     )
-    abha_client_id: str = Field(env="ABHA_CLIENT_ID")
-    abha_client_secret: str = Field(env="ABHA_CLIENT_SECRET")
+    abha_client_id: str = Field(default="demo_abha_client", env="ABHA_CLIENT_ID")
+    abha_client_secret: str = Field(default="demo_abha_secret", env="ABHA_CLIENT_SECRET")
     abha_scope: str = Field(default="abha-enrol", env="ABHA_SCOPE")
-    abha_redirect_uri: str = Field(env="ABHA_REDIRECT_URI")
+    abha_redirect_uri: str = Field(default="http://localhost:8000/auth/callback", env="ABHA_REDIRECT_URI")
     
     # NAMASTE Portal Configuration
     namaste_portal_url: str = Field(
@@ -59,7 +59,7 @@ class Settings(BaseSettings):
     namaste_api_key: Optional[str] = Field(default=None, env="NAMASTE_API_KEY")
     
     # JWT Configuration for ABHA OAuth 2.0
-    jwt_secret_key: str = Field(env="JWT_SECRET_KEY")
+    jwt_secret_key: str = Field(default="dev_jwt_secret_key_12345", env="JWT_SECRET_KEY")
     jwt_algorithm: str = Field(default="HS256", env="JWT_ALGORITHM")
     jwt_access_token_expire_minutes: int = Field(
         default=30, 
@@ -71,9 +71,9 @@ class Settings(BaseSettings):
     )
     
     # FHIR R4 Configuration
-    fhir_base_url: str = Field(env="FHIR_BASE_URL")
+    fhir_base_url: str = Field(default="http://localhost:8000/api/v1", env="FHIR_BASE_URL")
     fhir_version: str = Field(default="4.0.1", env="FHIR_VERSION")
-    terminology_service_url: str = Field(env="TERMINOLOGY_SERVICE_URL")
+    terminology_service_url: str = Field(default="http://localhost:8000/api/v1", env="TERMINOLOGY_SERVICE_URL")
     
     # Encryption Configuration for ABHA
     rsa_public_key_path: str = Field(
@@ -128,26 +128,32 @@ class Settings(BaseSettings):
         env="ALLOWED_HOSTS"
     )
     
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-        case_sensitive = False
+    # Pydantic v2 configuration
+    model_config = {
+        "env_file": ".env",
+        "env_file_encoding": "utf-8", 
+        "case_sensitive": False,
+        "extra": "ignore"
+    }
     
-    @validator("jwt_secret_key")
+    @field_validator("jwt_secret_key")
+    @classmethod
     def validate_jwt_secret(cls, v):
         """Ensure JWT secret key is secure"""
         if len(v) < 32:
             raise ValueError("JWT secret key must be at least 32 characters long")
         return v
     
-    @validator("cors_origins", pre=True)
+    @field_validator("cors_origins", mode="before")
+    @classmethod
     def parse_cors_origins(cls, v):
         """Parse CORS origins from string or list"""
         if isinstance(v, str):
             return [origin.strip() for origin in v.split(",")]
         return v
     
-    @validator("allowed_hosts", pre=True)
+    @field_validator("allowed_hosts", mode="before")
+    @classmethod
     def parse_allowed_hosts(cls, v):
         """Parse allowed hosts from string or list"""
         if isinstance(v, str):

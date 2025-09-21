@@ -12,7 +12,7 @@ class PaginationParams(BaseModel):
     count: int = Field(default=50, ge=1, le=1000, description="Number of results per page")
     offset: int = Field(default=0, ge=0, description="Starting offset")
     sort: Optional[str] = Field(default=None, description="Sort field")
-    sort_order: str = Field(default="asc", regex="^(asc|desc)$", description="Sort order")
+    sort_order: str = Field(default="asc", pattern="^(asc|desc)$", description="Sort order")
 
 
 class PaginationResult(BaseModel):
