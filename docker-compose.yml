@@ -1,0 +1,156 @@
+# Docker Compose for NAMASTE & ICD-11 TM2 Integration API
+# Development and production-ready setup
+
+version: '3.8'
+
+services:
+  # Main API service
+  api:
+    build: .
+    container_name: namaste-api
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=True
+      - MONGODB_URL=mongodb://mongodb:27017
+      - MONGODB_DATABASE=namaste_icd11_db
+      - WHO_ICD_API_KEY=${WHO_ICD_API_KEY}
+      - WHO_CLIENT_ID=${WHO_CLIENT_ID}
+      - WHO_CLIENT_SECRET=${WHO_CLIENT_SECRET}
+      - ABHA_CLIENT_ID=${ABHA_CLIENT_ID}
+      - ABHA_CLIENT_SECRET=${ABHA_CLIENT_SECRET}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - FHIR_BASE_URL=http://localhost:8000/fhir
+      - TERMINOLOGY_SERVICE_URL=http://localhost:8000/fhir
+      - ABHA_REDIRECT_URI=http://localhost:8000/api/v1/auth/abha/callback
+    depends_on:
+      - mongodb
+      - redis
+    volumes:
+      - ./logs:/app/logs
+      - ./data:/app/data
+      - ./config:/app/config
+    networks:
+      - namaste-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # MongoDB database
+  mongodb:
+    image: mongo:7.0
+    container_name: namaste-mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_DATABASE=namaste_icd11_db
+    volumes:
+      - mongodb_data:/data/db
+      - ./scripts/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+    networks:
+      - namaste-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Redis cache
+  redis:
+    image: redis:7.2-alpine
+    container_name: namaste-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - namaste-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # MongoDB Express (Web UI for MongoDB)
+  mongo-express:
+    image: mongo-express:1.0.0
+    container_name: namaste-mongo-express
+    ports:
+      - "8081:8081"
+    environment:
+      - ME_CONFIG_MONGODB_URL=mongodb://mongodb:27017
+      - ME_CONFIG_MONGODB_ENABLE_ADMIN=true
+      - ME_CONFIG_BASICAUTH_USERNAME=admin
+      - ME_CONFIG_BASICAUTH_PASSWORD=admin123
+    depends_on:
+      - mongodb
+    networks:
+      - namaste-network
+    restart: unless-stopped
+    profiles:
+      - debug
+
+  # Prometheus monitoring
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: namaste-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    networks:
+      - namaste-network
+    restart: unless-stopped
+    profiles:
+      - monitoring
+
+  # Grafana dashboards
+  grafana:
+    image: grafana/grafana:latest
+    container_name: namaste-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
+    depends_on:
+      - prometheus
+    networks:
+      - namaste-network
+    restart: unless-stopped
+    profiles:
+      - monitoring
+
+volumes:
+  mongodb_data:
+    driver: local
+  redis_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+
+networks:
+  namaste-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

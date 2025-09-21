@@ -1,0 +1,188 @@
+{
+  "resourceType": "ConceptMap",
+  "id": "namaste-to-icd11-tm2",
+  "url": "https://namaste.gov.in/fhir/ConceptMap/namaste-icd11-tm2",
+  "identifier": [
+    {
+      "use": "official",
+      "system": "https://namaste.gov.in/identifiers",
+      "value": "NAMASTE-ICD11-TM2-MAP-V1"
+    }
+  ],
+  "version": "1.0.0",
+  "name": "NAMASTE_to_ICD11_TM2_ConceptMap",
+  "title": "NAMASTE to ICD-11 TM2 Concept Mapping",
+  "status": "active",
+  "experimental": false,
+  "date": "2025-09-22",
+  "publisher": "Ministry of Ayush, Government of India",
+  "contact": [
+    {
+      "name": "NAMASTE Portal Support",
+      "telecom": [
+        {
+          "system": "url",
+          "value": "https://namaste.ayush.gov.in"
+        }
+      ]
+    }
+  ],
+  "description": "Mapping between NAMASTE (National AYUSH Morbidity & Standardized Terminologies Electronic) codes and WHO ICD-11 Traditional Medicine Module 2 (TM2) codes for interoperability and global health reporting.",
+  "purpose": "To enable dual-coding support in EMR systems, allowing traditional Ayurvedic diagnoses to be mapped to international ICD-11 TM2 standards for insurance claims, research, and global health analytics.",
+  "copyright": "Copyright © 2025 Ministry of Ayush, Government of India. All rights reserved.",
+  "sourceUri": "https://namaste.gov.in/fhir/CodeSystem/ayurveda",
+  "targetUri": "http://id.who.int/icd/release/11/mms/tm2",
+  "group": [
+    {
+      "source": "https://namaste.gov.in/fhir/CodeSystem/ayurveda",
+      "sourceVersion": "1.0.0",
+      "target": "http://id.who.int/icd/release/11/mms/tm2",
+      "targetVersion": "2025",
+      "element": [
+        {
+          "code": "NAM_001_001",
+          "display": "Jwara (Fever)",
+          "target": [
+            {
+              "code": "TM2.F01.2",
+              "display": "Fever patterns in traditional medicine",
+              "equivalence": "equivalent",
+              "comment": "Direct mapping - Ayurvedic fever concept aligns with TM2 fever patterns",
+              "dependsOn": [
+                {
+                  "property": "http://namaste.gov.in/property/dosha-type",
+                  "system": "https://namaste.gov.in/fhir/CodeSystem/dosha-types",
+                  "value": "Pitta"
+                }
+              ],
+              "product": [
+                {
+                  "property": "http://id.who.int/icd/property/tm2-pattern",
+                  "system": "http://id.who.int/icd/release/11/mms",
+                  "value": "R50.9",
+                  "display": "Fever, unspecified (Biomedicine equivalent)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "code": "NAM_001_001_01",
+          "display": "Vataja Jwara (Vata-type Fever)",
+          "target": [
+            {
+              "code": "TM2.F01.2.1",
+              "display": "Irregular fever pattern",
+              "equivalence": "equivalent",
+              "comment": "Vata-predominant fever with irregular patterns"
+            }
+          ]
+        },
+        {
+          "code": "NAM_001_001_02",
+          "display": "Pittaja Jwara (Pitta-type Fever)",
+          "target": [
+            {
+              "code": "TM2.F01.2.2",
+              "display": "High-grade fever pattern",
+              "equivalence": "equivalent",
+              "comment": "Pitta-predominant fever with high temperature"
+            }
+          ]
+        },
+        {
+          "code": "NAM_001_001_03",
+          "display": "Kaphaja Jwara (Kapha-type Fever)",
+          "target": [
+            {
+              "code": "TM2.F01.2.3",
+              "display": "Low-grade persistent fever pattern",
+              "equivalence": "equivalent",
+              "comment": "Kapha-predominant fever with persistence and heaviness"
+            }
+          ]
+        },
+        {
+          "code": "NAM_002_001",
+          "display": "Atisara (Diarrhea)",
+          "target": [
+            {
+              "code": "TM2.D02.1",
+              "display": "Digestive disorders with loose stools",
+              "equivalence": "equivalent",
+              "comment": "Ayurvedic diarrhea concept with digestive fire imbalance",
+              "product": [
+                {
+                  "property": "http://id.who.int/icd/property/tm2-pattern",
+                  "system": "http://id.who.int/icd/release/11/mms",
+                  "value": "K59.1",
+                  "display": "Diarrhea (Biomedicine equivalent)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "code": "NAM_003_001",
+          "display": "Arsha (Hemorrhoids)",
+          "target": [
+            {
+              "code": "TM2.D03.2",
+              "display": "Anorectal disorders with swelling",
+              "equivalence": "equivalent",
+              "comment": "Traditional understanding of hemorrhoids with dosha involvement",
+              "product": [
+                {
+                  "property": "http://id.who.int/icd/property/tm2-pattern",
+                  "system": "http://id.who.int/icd/release/11/mms",
+                  "value": "K64.9",
+                  "display": "Hemorrhoids, unspecified (Biomedicine equivalent)"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "source": "https://namaste.gov.in/fhir/CodeSystem/siddha",
+      "sourceVersion": "1.0.0",
+      "target": "http://id.who.int/icd/release/11/mms/tm2",
+      "targetVersion": "2025",
+      "element": [
+        {
+          "code": "SID_001_001",
+          "display": "Suram (Fever in Siddha)",
+          "target": [
+            {
+              "code": "TM2.F01.3",
+              "display": "Fever patterns in Siddha medicine",
+              "equivalence": "equivalent",
+              "comment": "Siddha fever concept with humoral theory"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "source": "https://namaste.gov.in/fhir/CodeSystem/unani",
+      "sourceVersion": "1.0.0", 
+      "target": "http://id.who.int/icd/release/11/mms/tm2",
+      "targetVersion": "2025",
+      "element": [
+        {
+          "code": "UNA_001_001",
+          "display": "Hummah (Fever in Unani)",
+          "target": [
+            {
+              "code": "TM2.F01.4",
+              "display": "Fever patterns in Unani medicine",
+              "equivalence": "equivalent",
+              "comment": "Unani fever concept with temperament theory"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

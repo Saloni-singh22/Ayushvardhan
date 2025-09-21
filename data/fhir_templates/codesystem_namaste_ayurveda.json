@@ -1,0 +1,205 @@
+{
+  "resourceType": "CodeSystem",
+  "id": "namaste-ayurveda-v1",
+  "url": "https://namaste.gov.in/fhir/CodeSystem/ayurveda",
+  "identifier": [
+    {
+      "use": "official",
+      "system": "https://namaste.gov.in/identifiers",
+      "value": "NAMASTE-AYURVEDA-V1"
+    }
+  ],
+  "version": "1.0.0",
+  "name": "NAMASTE_Ayurveda",
+  "title": "NAMASTE Ayurveda Terminology",
+  "status": "active",
+  "experimental": false,
+  "date": "2025-09-22",
+  "publisher": "Ministry of Ayush, Government of India",
+  "contact": [
+    {
+      "name": "NAMASTE Portal Support",
+      "telecom": [
+        {
+          "system": "url",
+          "value": "https://namaste.ayush.gov.in"
+        }
+      ]
+    }
+  ],
+  "description": "NAMASTE (National AYUSH Morbidity & Standardized Terminologies Electronic) code system for Ayurveda disorders and conditions. This code system provides standardized terminology for Ayurvedic diagnosis and treatment concepts.",
+  "purpose": "To provide standardized coding for Ayurvedic medical concepts for use in electronic health records and health information systems in compliance with India's EHR Standards 2016.",
+  "copyright": "Copyright © 2025 Ministry of Ayush, Government of India. All rights reserved.",
+  "caseSensitive": true,
+  "valueSet": "https://namaste.gov.in/fhir/ValueSet/ayurveda-all",
+  "hierarchyMeaning": "is-a",
+  "compositional": false,
+  "versionNeeded": false,
+  "content": "complete",
+  "supplements": "",
+  "count": 1500,
+  "property": [
+    {
+      "code": "status",
+      "uri": "http://hl7.org/fhir/concept-properties#status",
+      "description": "Status of the concept",
+      "type": "code"
+    },
+    {
+      "code": "definition",
+      "uri": "http://hl7.org/fhir/concept-properties#definition",
+      "description": "Definition of the concept in Ayurvedic context",
+      "type": "string"
+    },
+    {
+      "code": "dosha-involvement",
+      "description": "Primary dosha involvement (Vata, Pitta, Kapha)",
+      "type": "string"
+    },
+    {
+      "code": "system-involvement",
+      "description": "Body system primarily affected",
+      "type": "string"
+    },
+    {
+      "code": "icd11-tm2-map",
+      "description": "Mapped ICD-11 TM2 code",
+      "type": "code"
+    },
+    {
+      "code": "icd11-bio-map",
+      "description": "Mapped ICD-11 Biomedicine code",
+      "type": "code"
+    }
+  ],
+  "concept": [
+    {
+      "code": "NAM_001_001",
+      "display": "Jwara (Fever)",
+      "definition": "Elevated body temperature due to dosha imbalance, primarily Pitta vitiation",
+      "designation": [
+        {
+          "language": "hi",
+          "value": "ज्वर"
+        },
+        {
+          "language": "sa",
+          "value": "ज्वर"
+        }
+      ],
+      "property": [
+        {
+          "code": "status",
+          "valueCode": "active"
+        },
+        {
+          "code": "dosha-involvement",
+          "valueString": "Pitta"
+        },
+        {
+          "code": "system-involvement",
+          "valueString": "Rasa-Rakta Dhatu"
+        },
+        {
+          "code": "icd11-tm2-map",
+          "valueCode": "TM2.F01.2"
+        },
+        {
+          "code": "icd11-bio-map",
+          "valueCode": "R50.9"
+        }
+      ],
+      "concept": [
+        {
+          "code": "NAM_001_001_01",
+          "display": "Vataja Jwara (Vata-type Fever)",
+          "definition": "Fever characterized by Vata dosha predominance with symptoms like irregular pattern, body ache"
+        },
+        {
+          "code": "NAM_001_001_02", 
+          "display": "Pittaja Jwara (Pitta-type Fever)",
+          "definition": "Fever characterized by Pitta dosha predominance with high temperature, burning sensation"
+        },
+        {
+          "code": "NAM_001_001_03",
+          "display": "Kaphaja Jwara (Kapha-type Fever)",
+          "definition": "Fever characterized by Kapha dosha predominance with heaviness, congestion"
+        }
+      ]
+    },
+    {
+      "code": "NAM_002_001",
+      "display": "Atisara (Diarrhea)",
+      "definition": "Frequent loose stools due to digestive fire imbalance and dosha vitiation",
+      "designation": [
+        {
+          "language": "hi",
+          "value": "अतिसार"
+        },
+        {
+          "language": "sa",
+          "value": "अतिसार"
+        }
+      ],
+      "property": [
+        {
+          "code": "status",
+          "valueCode": "active"
+        },
+        {
+          "code": "dosha-involvement",
+          "valueString": "Vata-Pitta"
+        },
+        {
+          "code": "system-involvement",
+          "valueString": "Pachaka Agni"
+        },
+        {
+          "code": "icd11-tm2-map",
+          "valueCode": "TM2.D02.1"
+        },
+        {
+          "code": "icd11-bio-map",
+          "valueCode": "K59.1"
+        }
+      ]
+    },
+    {
+      "code": "NAM_003_001",
+      "display": "Arsha (Hemorrhoids)",
+      "definition": "Swollen veins in rectum/anus due to Vata-Kapha vitiation and improper lifestyle",
+      "designation": [
+        {
+          "language": "hi",
+          "value": "अर्श"
+        },
+        {
+          "language": "sa",
+          "value": "अर्श"
+        }
+      ],
+      "property": [
+        {
+          "code": "status",
+          "valueCode": "active"
+        },
+        {
+          "code": "dosha-involvement",
+          "valueString": "Vata-Kapha"
+        },
+        {
+          "code": "system-involvement",
+          "valueString": "Purishavaha Srotas"
+        },
+        {
+          "code": "icd11-tm2-map",
+          "valueCode": "TM2.D03.2"
+        },
+        {
+          "code": "icd11-bio-map",
+          "valueCode": "K64.9"
+        }
+      ]
+    }
+  ]
+}

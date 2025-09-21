@@ -1,0 +1,118 @@
+# Git ignore file for NAMASTE & ICD-11 TM2 Integration API
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environment
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Environment Variables
+.env
+.env.local
+.env.production
+.env.staging
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+logs/
+*.log
+*.log.*
+
+# Database
+*.db
+*.sqlite3
+
+# API Keys and Secrets
+config/keys/
+secrets/
+*.pem
+*.key
+*.crt
+
+# Data files
+data/namaste/*.csv
+data/who_icd/*.json
+data/mappings/*.json
+
+# ML Models
+models/
+*.pkl
+*.joblib
+*.h5
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.cache
+nosetests.xml
+coverage.xml
+
+# Documentation
+docs/_build/
+site/
+
+# Docker
+.dockerignore
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# MongoDB data
+mongodb_data/
+
+# Redis data
+redis_data/
+
+# Monitoring data
+prometheus_data/
+grafana_data/
