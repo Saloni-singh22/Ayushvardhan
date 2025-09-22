@@ -99,9 +99,11 @@ async def upload_data_file(
                     if isinstance(obj, dict):
                         cleaned = {}
                         for key, value in obj.items():
-                            if key == "language" and value is not None:
-                                # Ensure language fields are strings for text indexing
-                                cleaned[key] = str(value) if value is not None else None
+                            # Skip None language fields entirely to avoid text index issues
+                            if key == "language" and value is None:
+                                continue
+                            elif key == "language" and value is not None:
+                                cleaned[key] = str(value)
                             else:
                                 cleaned[key] = clean_for_text_index(value)
                         return cleaned
@@ -120,26 +122,19 @@ async def upload_data_file(
                 if existing_doc:
                     # Update existing document (remove _id to avoid immutable field error)
                     code_system_dict.pop("_id", None)
-                    update_result = await db.codesystems.update_one(
+                    await db.codesystems.update_one(
                         {"url": result.code_system.url, "version": result.code_system.version},
                         {"$set": code_system_dict}
                     )
-                    print(f"Database update: matched={update_result.matched_count}, modified={update_result.modified_count}")
                 else:
                     # Insert new document with _id
                     code_system_dict["_id"] = result.code_system.id
-                    insert_result = await db.codesystems.insert_one(code_system_dict)
-                    print(f"Database insert: {insert_result.inserted_id}")
-                
-                # Verify save
-                count = await db.codesystems.count_documents({})
-                print(f"Total documents in database after save: {count}")
+                    await db.codesystems.insert_one(code_system_dict)
                 
             except Exception as db_error:
+                # Log error but don't break the response
                 print(f"Database save error: {db_error}")
-                import traceback
-                traceback.print_exc()
-                # Don't raise the error to avoid breaking the response
+                # Still return success since processing worked
         
         return {
             "success": True,

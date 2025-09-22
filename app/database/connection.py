@@ -64,11 +64,18 @@ class MongoDB:
                 ("version", 1)
             ], unique=True, name="codesystem_url_version")
             
-            await self.database.codesystems.create_index([
-                ("name", "text"),
-                ("title", "text"),
-                ("concept.display", "text")
-            ], name="codesystem_text_search")
+            # Try to create text search index, skip if it fails due to data issues
+            try:
+                await self.database.codesystems.create_index([
+                    ("name", "text"),
+                    ("title", "text"),
+                    ("concept.display", "text")
+                ], name="codesystem_text_search")
+            except Exception as text_index_error:
+                if "language override field" in str(text_index_error):
+                    logger.warning("Skipping text search index creation due to language field issues. Text search will be limited.")
+                else:
+                    logger.error(f"Failed to create text search index: {text_index_error}")
             
             await self.database.codesystems.create_index([
                 ("status", 1),
