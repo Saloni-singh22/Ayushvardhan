@@ -1,6 +1,30 @@
 """
-WHO ICD-11 TM2 API Client
-Service for retrieving ICD-11 TM2 entities from WHO API endpoints
+WHO ICD-11 TM2 A    def __init__(self, data: Dict[str, Any]):
+        # Handle both foundation and MMS linearization data formats
+        self.id = data.get("id", "") or data.get("@id", "")
+        self.title = data.get("title", {})
+        self.definition = data.get("definition", {})
+        self.uri = data.get("@id", "") or data.get("id", "")
+        self.parent = data.get("parent", [])
+        self.child = data.get("child", [])
+        
+        # MMS-specific fields
+        self.theCode = data.get("theCode", "")
+        self.stemId = data.get("stemId", "")
+        self.chapter = data.get("chapter", "")
+        
+        # Foundation-specific fields
+        self.inclusion = data.get("inclusion", {})
+        self.exclusion = data.get("exclusion", {})
+        self.postcoordinationAvailability = data.get("postcoordinationAvailability", {})
+        self.codingNote = data.get("codingNote", {})
+        self.blockId = data.get("blockId", "")
+        self.codeRange = data.get("codeRange", {})
+        self.classKind = data.get("classKind", "")
+        self.browserUrl = data.get("browserUrl", "")
+        
+        # Raw data for additional processing
+        self.raw_data = data for retrieving ICD-11 TM2 entities from WHO API endpoints
 """
 
 import asyncio
@@ -37,6 +61,11 @@ class WHOICD11TM2Entity:
         
         # Raw data for additional processing
         self.raw_data = data
+    
+    @property
+    def code(self) -> str:
+        """Get ICD-11 code"""
+        return self.theCode or self.codeRange.get("start", "") if isinstance(self.codeRange, dict) else ""
     
     @property
     def display_title(self) -> str:
@@ -88,9 +117,9 @@ class WHOICD11TM2Client:
         self.api_version = settings.who_icd_api_version
         self.auth_service = who_auth_service
         
-        # API endpoints
-        self.search_endpoint = f"{self.base_url}/{self.api_version}/mms/search"
-        self.entity_endpoint = f"{self.base_url}/{self.api_version}/mms"
+        # API endpoints - Updated for correct WHO API structure
+        self.search_endpoint = f"{self.base_url}/{self.api_version}/search"
+        self.entity_endpoint = f"{self.base_url}/{self.api_version}"
         
         # Rate limiting
         self._request_semaphore = asyncio.Semaphore(5)  # Max 5 concurrent requests
@@ -139,20 +168,30 @@ class WHOICD11TM2Client:
         """
         logger.info(f"Searching WHO ICD-11 entities: term='{term}', limit={limit}, offset={offset}")
         
-        search_payload = {
-            "searchText": term,
-            "flatResults": flat_results,
-            "limit": limit,
-            "offset": offset,
-            "useFlexisearch": True,
-            "highlightingEnabled": False
+        # WHO API requires non-empty search term
+        if not term or term.strip() == "":
+            term = "disease"  # Default search term if empty
+        
+        # Use simplified query parameters for WHO API MMS endpoint
+        search_params = {
+            "q": term.strip()
         }
+        
+        # Add other parameters
+        if flat_results:
+            search_params["flatResults"] = "true"
+        
+        # Add pagination params if specified
+        if limit:
+            search_params["limit"] = str(limit)
+        if offset:
+            search_params["offset"] = str(offset)
         
         try:
             response = await self._rate_limited_request(
-                "POST",
+                "GET",
                 self.search_endpoint,
-                json=search_payload
+                params=search_params
             )
             
             search_results = response.json()
@@ -249,11 +288,20 @@ class WHOICD11TM2Client:
                 current_limit = min(batch_size, remaining)
             
             try:
-                # Search for entities in this batch
+                # Search for entities using Traditional Medicine keywords
+                # Based on testing, use specific terms that return TM-related entities
+                tm_search_terms = [
+                    "acupuncture", "cupping", "moxibustion", "traditional",
+                    "complementary", "herbal", "massage", "meditation",
+                    "homeopathy", "naturopathy", "chiropractic", "osteopathy"
+                ]
+                
+                current_term = tm_search_terms[offset // current_limit % len(tm_search_terms)]
+                
                 search_results = await self.search_entities(
-                    term="",  # Empty term for all entities
+                    term=current_term,
                     limit=current_limit,
-                    offset=offset,
+                    offset=offset % current_limit,  # Reset offset for each term
                     include_tm2_only=True
                 )
                 

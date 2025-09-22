@@ -43,7 +43,12 @@ class AuthMiddleware(BaseHTTPMiddleware):
         "/api/v1/who-icd/entity",
         "/api/v1/who-icd/sync/tm2",
         "/api/v1/who-icd/search/keywords",
-        "/api/v1/who-icd/codesystems"
+        "/api/v1/who-icd/codesystems",
+        # NAMASTE-WHO mapping endpoints - public access for integration testing
+        "/api/v1/mapping/create-comprehensive",
+        "/api/v1/mapping/translate",
+        "/api/v1/mapping/conceptmap",
+        "/api/v1/mapping/status"
     }
     
     async def dispatch(self, request: Request, call_next) -> Response:
@@ -58,6 +63,10 @@ class AuthMiddleware(BaseHTTPMiddleware):
         
         # Check for WHO ICD route prefixes (to handle path parameters)
         if request_path.startswith("/api/v1/who-icd/"):
+            return await call_next(request)
+        
+        # Check for mapping route prefixes (to handle path parameters)
+        if request_path.startswith("/api/v1/mapping/"):
             return await call_next(request)
         
         # Skip authentication for OPTIONS requests (CORS preflight)

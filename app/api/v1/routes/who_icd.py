@@ -30,9 +30,9 @@ async def check_who_api_health():
         dict: Health status and basic API information
     """
     try:
-        # Test authentication by making a simple search
+        # Test authentication by making a simple search with a valid term
         search_result = await who_icd_client.search_entities(
-            term="", 
+            term="diabetes",  # Use a simple, common medical term
             limit=1, 
             include_tm2_only=False
         )

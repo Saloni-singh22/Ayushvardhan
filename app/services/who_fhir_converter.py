@@ -120,7 +120,7 @@ class WHOICDToFHIRConverter:
             version=version,
             name=system_name,
             title=system_title,
-            status=PublicationStatusEnum.active,
+            status=PublicationStatusEnum.ACTIVE,
             experimental=False,
             date=datetime.now(),
             publisher=self.publisher,

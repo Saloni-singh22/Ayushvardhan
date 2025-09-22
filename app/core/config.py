@@ -33,14 +33,14 @@ class Settings(BaseSettings):
     
     # WHO ICD-11 API Configuration (2025)
     who_icd_api_base_url: str = Field(
-        default="https://id.who.int/icd/release/11", 
+        default="https://id.who.int/icd", 
         env="WHO_ICD_API_BASE_URL"
     )
     who_icd_auth_url: str = Field(
         default="https://icdaccessmanagement.who.int/connect/token",
         env="WHO_ICD_AUTH_URL"
     )
-    who_icd_api_version: str = Field(default="2023-01", env="WHO_ICD_API_VERSION")
+    who_icd_api_version: str = Field(default="release/11/2023-01/mms", env="WHO_ICD_API_VERSION")
     who_client_id: str = Field(default="8237d65d-ff79-4de1-98a7-a0af96a555a9_939cdbf7-938d-474f-9825-eafec1575f75", env="WHO_CLIENT_ID")
     who_client_secret: str = Field(default="J1heyJHJGRyEb5CJ6ykeS/HvdscMK/00rOwZwTd45YY=", env="WHO_CLIENT_SECRET")
     who_icd_scope: str = Field(default="icdapi_access", env="WHO_ICD_SCOPE")

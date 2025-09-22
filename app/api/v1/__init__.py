@@ -12,6 +12,7 @@ from app.api.v1.routes.conceptmap import router as conceptmap_router
 from app.api.v1.routes.valueset import router as valueset_router
 from app.api.v1.routes.data import router as data_router
 from app.api.v1.routes.who_icd import router as who_icd_router
+from app.api.v1.routes.mapping import router as mapping_router
 from app.utils.fhir_utils import create_capability_statement
 
 # Create main API router
@@ -44,6 +45,11 @@ api_router.include_router(
 api_router.include_router(
     who_icd_router,
     tags=["WHO ICD-11 TM2", "Traditional Medicine"]
+)
+
+api_router.include_router(
+    mapping_router,
+    tags=["NAMASTE-WHO Mapping", "Dual Coding", "Translation"]
 )
 
 # FHIR metadata endpoint
