@@ -80,9 +80,9 @@ app = FastAPI(
     * ✅ ABHA OAuth 2.0 Authentication
     * ✅ ISO 22600 Access Control
     """,
-    docs_url="/docs" if settings.debug else None,
-    redoc_url="/redoc" if settings.debug else None,
-    openapi_url="/openapi.json" if settings.debug else None,
+    docs_url="/docs",  # Always enable docs for development
+    redoc_url="/redoc",  # Always enable redoc for development
+    openapi_url="/openapi.json",  # Always enable openapi for development
     lifespan=lifespan
 )
 

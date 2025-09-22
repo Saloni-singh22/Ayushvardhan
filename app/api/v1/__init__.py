@@ -10,6 +10,7 @@ from fastapi.responses import JSONResponse
 from app.api.v1.routes.codesystem import router as codesystem_router
 from app.api.v1.routes.conceptmap import router as conceptmap_router
 from app.api.v1.routes.valueset import router as valueset_router
+from app.api.v1.routes.data import router as data_router
 from app.utils.fhir_utils import create_capability_statement
 
 # Create main API router
@@ -32,6 +33,11 @@ api_router.include_router(
     valueset_router,
     prefix="/ValueSet", 
     tags=["ValueSet", "Terminology"]
+)
+
+api_router.include_router(
+    data_router,
+    tags=["Data Processing", "File Import"]
 )
 
 # FHIR metadata endpoint

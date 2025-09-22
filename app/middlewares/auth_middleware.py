@@ -31,7 +31,12 @@ class AuthMiddleware(BaseHTTPMiddleware):
         "/openapi.json",
         "/fhir/metadata",
         "/api/v1/auth/abha/login",
-        "/api/v1/auth/abha/callback"
+        "/api/v1/auth/abha/callback",
+        # Data processing endpoints for development/testing
+        "/api/v1/data/upload",
+        "/api/v1/data/validate", 
+        "/api/v1/data/export",
+        "/api/v1/data/template"
     }
     
     async def dispatch(self, request: Request, call_next) -> Response:
