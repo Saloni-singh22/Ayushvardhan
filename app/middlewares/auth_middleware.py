@@ -36,14 +36,28 @@ class AuthMiddleware(BaseHTTPMiddleware):
         "/api/v1/data/upload",
         "/api/v1/data/validate", 
         "/api/v1/data/export",
-        "/api/v1/data/template"
+        "/api/v1/data/template",
+        # WHO ICD-11 TM2 endpoints - public access for integration testing
+        "/api/v1/who-icd/health",
+        "/api/v1/who-icd/search",
+        "/api/v1/who-icd/entity",
+        "/api/v1/who-icd/sync/tm2",
+        "/api/v1/who-icd/search/keywords",
+        "/api/v1/who-icd/codesystems"
     }
     
     async def dispatch(self, request: Request, call_next) -> Response:
         """Process request through authentication middleware"""
         
         # Skip authentication for exempt routes
-        if request.url.path in self.EXEMPT_ROUTES:
+        request_path = request.url.path
+        
+        # Check exact path matches
+        if request_path in self.EXEMPT_ROUTES:
+            return await call_next(request)
+        
+        # Check for WHO ICD route prefixes (to handle path parameters)
+        if request_path.startswith("/api/v1/who-icd/"):
             return await call_next(request)
         
         # Skip authentication for OPTIONS requests (CORS preflight)

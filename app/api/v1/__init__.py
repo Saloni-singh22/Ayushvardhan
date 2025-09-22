@@ -11,6 +11,7 @@ from app.api.v1.routes.codesystem import router as codesystem_router
 from app.api.v1.routes.conceptmap import router as conceptmap_router
 from app.api.v1.routes.valueset import router as valueset_router
 from app.api.v1.routes.data import router as data_router
+from app.api.v1.routes.who_icd import router as who_icd_router
 from app.utils.fhir_utils import create_capability_statement
 
 # Create main API router
@@ -38,6 +39,11 @@ api_router.include_router(
 api_router.include_router(
     data_router,
     tags=["Data Processing", "File Import"]
+)
+
+api_router.include_router(
+    who_icd_router,
+    tags=["WHO ICD-11 TM2", "Traditional Medicine"]
 )
 
 # FHIR metadata endpoint

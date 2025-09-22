@@ -133,15 +133,35 @@ class MongoDB:
                 ("linearization", 1)
             ], unique=True, name="who_icd_code_release_linear")
             
-            await self.database.who_icd_codes.create_index([
-                ("title.@value", "text"),
-                ("definition.@value", "text")
-            ], name="who_icd_text_search")
+            # Try to create text search index, skip if it fails due to data issues
+            try:
+                await self.database.who_icd_codes.create_index([
+                    ("title.@value", "text"),
+                    ("definition.@value", "text")
+                ], name="who_icd_text_search")
+            except Exception as text_index_error:
+                if "language override field" in str(text_index_error):
+                    logger.warning("Skipping WHO ICD text search index creation due to language field issues. Text search will be limited.")
+                else:
+                    logger.error(f"Failed to create WHO ICD text search index: {text_index_error}")
             
             await self.database.who_icd_codes.create_index([
                 ("parent", 1),
                 ("child", 1)
             ], name="who_icd_hierarchy")
+            
+            await self.database.who_icd_codes.create_index([
+                ("entity_id", 1)
+            ], unique=True, name="who_icd_entity_id")
+            
+            await self.database.who_icd_codes.create_index([
+                ("uri", 1)
+            ], name="who_icd_uri")
+            
+            await self.database.who_icd_codes.create_index([
+                ("tm2_category", 1),
+                ("status", 1)
+            ], name="who_icd_tm2_category")
             
             # Code mappings collection indexes
             await self.database.code_mappings.create_index([
