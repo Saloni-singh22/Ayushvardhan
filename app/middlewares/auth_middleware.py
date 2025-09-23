@@ -48,7 +48,13 @@ class AuthMiddleware(BaseHTTPMiddleware):
         "/api/v1/mapping/create-comprehensive",
         "/api/v1/mapping/translate",
         "/api/v1/mapping/conceptmap",
-        "/api/v1/mapping/status"
+        "/api/v1/mapping/status",
+        # Enhanced multi-tier mapping endpoints - public access for testing
+        "/api/v1/enhanced-mapping/create-multi-tier",
+        "/api/v1/enhanced-mapping/status",
+        "/api/v1/enhanced-mapping/analytics",
+        "/api/v1/enhanced-mapping/tier-distribution",
+        "/api/v1/enhanced-mapping/validate-mapping"
     }
     
     async def dispatch(self, request: Request, call_next) -> Response:
@@ -67,6 +73,10 @@ class AuthMiddleware(BaseHTTPMiddleware):
         
         # Check for mapping route prefixes (to handle path parameters)
         if request_path.startswith("/api/v1/mapping/"):
+            return await call_next(request)
+        
+        # Check for enhanced mapping route prefixes (to handle path parameters)
+        if request_path.startswith("/api/v1/enhanced-mapping/"):
             return await call_next(request)
         
         # Skip authentication for OPTIONS requests (CORS preflight)
