@@ -14,6 +14,7 @@ from app.api.v1.routes.data import router as data_router
 from app.api.v1.routes.who_icd import router as who_icd_router
 from app.api.v1.routes.mapping import router as mapping_router
 from app.api.v1.routes.enhanced_mapping import router as enhanced_mapping_router
+from app.api.v1.routes.dashboard import router as dashboard_router
 from app.utils.fhir_utils import create_capability_statement
 
 # Create main API router
@@ -56,6 +57,12 @@ api_router.include_router(
 api_router.include_router(
     enhanced_mapping_router,
     tags=["Enhanced Multi-Tier Mapping", "Production Ready", "Clinical Validation"]
+)
+
+api_router.include_router(
+    dashboard_router,
+    prefix="/dashboard",
+    tags=["Dashboard", "Metrics", "Monitoring"]
 )
 
 # FHIR metadata endpoint

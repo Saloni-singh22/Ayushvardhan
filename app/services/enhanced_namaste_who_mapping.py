@@ -215,11 +215,11 @@ class EnhancedNAMASTEWHOMappingService:
                 
                 # Filter for TM2 entities
                 tm2_entities = [entity for entity in who_entities 
-                              if "tm" in entity.code.lower() or "traditional" in entity.title.lower()]
+                              if "tm" in entity.code.lower() or "traditional" in entity.display_title.lower()]
                 
                 if tm2_entities:
                     best_match = tm2_entities[0]  # Take the first/best match
-                    confidence = self._calculate_confidence(display, best_match.title, "tm2")
+                    confidence = self._calculate_confidence(display, best_match.display_title, "tm2")
                     
                     if confidence >= 0.6:  # Minimum confidence for TM2 mapping
                         return MappingResult(
@@ -227,7 +227,7 @@ class EnhancedNAMASTEWHOMappingService:
                             namaste_display=display,
                             tier=MappingTier.DIRECT_TM2,
                             who_code=best_match.code,
-                            who_display=best_match.title,
+                            who_display=best_match.display_title,
                             who_system="http://id.who.int/icd/release/11/mms/tm2",
                             confidence=confidence,
                             clinical_notes=f"Direct TM2 mapping found",
@@ -259,11 +259,11 @@ class EnhancedNAMASTEWHOMappingService:
                 # Filter out TM2 entities, focus on biomedical
                 biomedical_entities = [entity for entity in who_entities 
                                      if "tm" not in entity.code.lower() and 
-                                        not "traditional" in entity.title.lower()]
+                                        not "traditional" in entity.display_title.lower()]
                 
                 if biomedical_entities:
                     best_match = biomedical_entities[0]
-                    confidence = self._calculate_confidence(display, best_match.title, "biomedical")
+                    confidence = self._calculate_confidence(display, best_match.display_title, "biomedical")
                     
                     if confidence >= 0.4:  # Lower threshold for biomedical mapping
                         return MappingResult(
@@ -271,7 +271,7 @@ class EnhancedNAMASTEWHOMappingService:
                             namaste_display=display,
                             tier=MappingTier.BIOMEDICAL_ICD11,
                             who_code=best_match.code,
-                            who_display=best_match.title,
+                            who_display=best_match.display_title,
                             who_system="http://id.who.int/icd/release/11/mms",
                             confidence=confidence,
                             clinical_notes=f"Biomedical equivalent mapping via clinical synonym: {clinical_term}",

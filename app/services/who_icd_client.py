@@ -1,30 +1,6 @@
 """
-WHO ICD-11 TM2 A    def __init__(self, data: Dict[str, Any]):
-        # Handle both foundation and MMS linearization data formats
-        self.id = data.get("id", "") or data.get("@id", "")
-        self.title = data.get("title", {})
-        self.definition = data.get("definition", {})
-        self.uri = data.get("@id", "") or data.get("id", "")
-        self.parent = data.get("parent", [])
-        self.child = data.get("child", [])
-        
-        # MMS-specific fields
-        self.theCode = data.get("theCode", "")
-        self.stemId = data.get("stemId", "")
-        self.chapter = data.get("chapter", "")
-        
-        # Foundation-specific fields
-        self.inclusion = data.get("inclusion", {})
-        self.exclusion = data.get("exclusion", {})
-        self.postcoordinationAvailability = data.get("postcoordinationAvailability", {})
-        self.codingNote = data.get("codingNote", {})
-        self.blockId = data.get("blockId", "")
-        self.codeRange = data.get("codeRange", {})
-        self.classKind = data.get("classKind", "")
-        self.browserUrl = data.get("browserUrl", "")
-        
-        # Raw data for additional processing
-        self.raw_data = data for retrieving ICD-11 TM2 entities from WHO API endpoints
+WHO ICD-11 TM2 API Client
+Client for retrieving ICD-11 TM2 entities from WHO API endpoints
 """
 
 import asyncio
@@ -43,13 +19,20 @@ class WHOICD11TM2Entity:
     """Represents an ICD-11 TM2 entity from WHO API"""
     
     def __init__(self, data: Dict[str, Any]):
-        self.id = data.get("@id", "")
-        self.code = data.get("code", "")
+        # Handle both foundation and MMS linearization data formats
+        self.id = data.get("@id", "") or data.get("id", "")
         self.title = data.get("title", {})
         self.definition = data.get("definition", {})
-        self.uri = data.get("@id", "")
+        self.uri = data.get("@id", "") or data.get("id", "")
         self.parent = data.get("parent", [])
         self.child = data.get("child", [])
+        
+        # MMS-specific fields
+        self.theCode = data.get("theCode", "")
+        self.stemId = data.get("stemId", "")
+        self.chapter = data.get("chapter", "")
+        
+        # Foundation-specific fields
         self.inclusion = data.get("inclusion", {})
         self.exclusion = data.get("exclusion", {})
         self.postcoordinationAvailability = data.get("postcoordinationAvailability", {})

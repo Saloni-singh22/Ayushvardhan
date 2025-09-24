@@ -124,11 +124,20 @@ class Settings(BaseSettings):
     
     # CORS and Security
     cors_origins: List[str] = Field(
-        default=["http://localhost:3000", "http://localhost:8080"], 
+        default=[
+            "http://localhost:3000", 
+            "http://localhost:8080",
+            "http://localhost:4173",  # Vite preview
+            "http://localhost:5173",  # Vite dev server
+            "http://127.0.0.1:3000",
+            "http://127.0.0.1:8080",
+            "http://127.0.0.1:4173",
+            "http://127.0.0.1:5173"   # Vite dev server
+        ], 
         env="CORS_ORIGINS"
     )
     allowed_hosts: List[str] = Field(
-        default=["localhost", "127.0.0.1"], 
+        default=["localhost", "127.0.0.1", "*"], 
         env="ALLOWED_HOSTS"
     )
     

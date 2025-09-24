@@ -92,13 +92,30 @@ app.add_middleware(
     allowed_hosts=settings.allowed_hosts
 )
 
-# Add CORS middleware
+# Add CORS middleware - Enhanced for TypeScript frontend integration
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+    allow_headers=[
+        "*",
+        "Authorization",
+        "Content-Type", 
+        "X-Requested-With",
+        "Accept",
+        "Origin",
+        "X-ABHA-Token",          # For ABHA authentication
+        "X-Session-Id",          # For audit trails
+        "X-Consent-Id",          # For consent tracking
+        "X-Client-Version",      # For frontend version tracking
+    ],
+    expose_headers=[
+        "X-Total-Count", 
+        "X-Page-Count",
+        "X-RateLimit-Remaining",
+        "X-RateLimit-Reset"
+    ]
 )
 
 # Add custom middlewares

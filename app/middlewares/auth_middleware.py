@@ -29,9 +29,14 @@ class AuthMiddleware(BaseHTTPMiddleware):
         "/docs",
         "/redoc", 
         "/openapi.json",
+        "/favicon.ico",
         "/fhir/metadata",
         "/api/v1/auth/abha/login",
         "/api/v1/auth/abha/callback",
+        # Dashboard endpoints for frontend integration - public access
+        "/api/v1/dashboard/health",
+        "/api/v1/dashboard/mapping-quality",
+        "/api/v1/dashboard/statistics",
         # Data processing endpoints for development/testing
         "/api/v1/data/upload",
         "/api/v1/data/validate", 
@@ -79,6 +84,19 @@ class AuthMiddleware(BaseHTTPMiddleware):
         if request_path.startswith("/api/v1/enhanced-mapping/"):
             return await call_next(request)
         
+        # Check for dashboard route prefixes (to handle all dashboard endpoints)
+        if request_path.startswith("/api/v1/dashboard/"):
+            return await call_next(request)
+        
+        # Check for FHIR resource endpoints (CodeSystem, ConceptMap, ValueSet)
+        if (request_path.startswith("/CodeSystem") or 
+            request_path.startswith("/ConceptMap") or 
+            request_path.startswith("/ValueSet") or
+            request_path.startswith("/api/v1/CodeSystem") or 
+            request_path.startswith("/api/v1/ConceptMap") or 
+            request_path.startswith("/api/v1/ValueSet")):
+            return await call_next(request)
+        
         # Skip authentication for OPTIONS requests (CORS preflight)
         if request.method == "OPTIONS":
             return await call_next(request)
@@ -89,7 +107,8 @@ class AuthMiddleware(BaseHTTPMiddleware):
         if not authorization:
             if settings.debug:
                 # In debug mode, allow requests without auth for development
-                logger.warning(f"No authorization header for {request.url.path}")
+                logger.warning(f"Debug mode: allowing request without auth for {request.url.path}")
+                request.state.user = {"abha_number": "debug_user", "debug": True}
                 return await call_next(request)
             else:
                 raise HTTPException(
