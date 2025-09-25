@@ -76,7 +76,7 @@ data/who_icd/*.json
 data/mappings/*.json
 
 # ML Models
-models/
+
 *.pkl
 *.joblib
 *.h5
