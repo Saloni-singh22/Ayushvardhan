@@ -12,7 +12,15 @@ import logging
 
 from app.core.config import get_settings
 from app.database.connection import get_database
-from app.models.fhir.resources import ValueSet, Bundle, BundleEntry
+from app.models.fhir.resources import (
+    ValueSet,
+    Bundle,
+    BundleEntry,
+    Parameters,
+    ParametersParameter,
+    ParametersParameterPart,
+)
+from app.models.fhir.base import BundleTypeEnum
 from app.models.namaste.traditional_medicine import NAMASTEValueSet
 from app.models.database import ValueSetDBModel
 from app.middlewares.auth_middleware import get_current_user
@@ -22,6 +30,69 @@ from app.utils.pagination import PaginationParams, paginate_results
 logger = logging.getLogger(__name__)
 router = APIRouter(tags=["ValueSet"])
 settings = get_settings()
+
+
+def _validate_value_set_structure(value_set: ValueSet) -> None:
+    """Ensure ValueSet resources include minimal compose/expansion content."""
+
+    errors: List[str] = []
+
+    if not value_set.compose and not value_set.expansion:
+        errors.append("ValueSet must provide either a compose or an expansion section.")
+
+    if value_set.compose:
+        includes = value_set.compose.include
+        if not includes:
+            errors.append("ValueSet.compose.include must contain at least one include entry.")
+        else:
+            for index, include in enumerate(includes):
+                has_definition = any(
+                    [
+                        include.system,
+                        include.valueSet,
+                        include.concept,
+                        include.filter,
+                    ]
+                )
+                if not has_definition:
+                    errors.append(
+                        f"ValueSet.compose.include[{index}] must define a system, valueSet reference, filter, or explicit concepts."
+                    )
+
+    if errors:
+        raise HTTPException(
+            status_code=400,
+            detail=create_operation_outcome(
+                severity="error",
+                code="invalid",
+                details="; ".join(errors),
+            ),
+        )
+
+
+def _validate_search_bundle(bundle: Bundle) -> None:
+    """Validate Bundle responses adhere to searchset expectations."""
+
+    if bundle.type != BundleTypeEnum.SEARCHSET:
+        raise HTTPException(
+            status_code=500,
+            detail=create_operation_outcome(
+                severity="error",
+                code="processing",
+                details="Search endpoints must return Bundles of type 'searchset'.",
+            ),
+        )
+
+    for index, entry in enumerate(bundle.entry or []):
+        if entry.resource is None:
+            raise HTTPException(
+                status_code=500,
+                detail=create_operation_outcome(
+                    severity="error",
+                    code="processing",
+                    details=f"Bundle entry at position {index} is missing a resource payload.",
+                ),
+            )
 
 
 @router.get("", response_model=Bundle, summary="Search ValueSets")
@@ -111,6 +182,7 @@ async def search_value_sets(
             # Convert MongoDB document to FHIR ValueSet
             value_set = db_model.from_dict(doc, ValueSet)
             if value_set:
+                _validate_value_set_structure(value_set)
                 entry = BundleEntry(
                     fullUrl=f"{settings.fhir_base_url}/ValueSet/{value_set.id}",
                     resource=value_set
@@ -119,12 +191,14 @@ async def search_value_sets(
         
         # Create search Bundle
         bundle = Bundle(
-            type="searchset",
+            type=BundleTypeEnum.SEARCHSET,
             timestamp=datetime.utcnow(),
             total=total,
             entry=entries
         )
         
+        _validate_search_bundle(bundle)
+
         return bundle
         
     except Exception as e:

@@ -11,7 +11,14 @@ import logging
 
 from app.core.config import get_settings
 from app.database.connection import get_database
-from app.models.fhir.resources import CodeSystem, Bundle, BundleEntry
+from app.models.fhir.resources import (
+    CodeSystem,
+    Bundle,
+    BundleEntry,
+    Parameters,
+    ParametersParameter,
+    ParametersParameterPart,
+)
 from app.models.namaste.traditional_medicine import NAMASTECodeSystem, AyushSystemEnum
 from app.models.who.icd11 import ICD11CodeSystem, ICD11ModuleEnum
 from app.models.database import CodeSystemDBModel
@@ -334,7 +341,7 @@ async def delete_code_system(
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 
-@router.get("/{id}/$validate-code", summary="Validate Code")
+@router.get("/{id}/$validate-code", summary="Validate Code", response_model=Parameters)
 async def validate_code(
     id: str = Path(..., description="CodeSystem logical ID"),
     code: Optional[str] = Query(None, description="Code to validate"),
@@ -383,38 +390,43 @@ async def validate_code(
             display_valid = (display.lower() == found_display.lower())
         
         # Create Parameters response
-        parameters = {
-            "resourceType": "Parameters",
-            "parameter": [
-                {
-                    "name": "result",
-                    "valueBoolean": is_valid and display_valid
-                },
-                {
-                    "name": "code",
-                    "valueCode": code
-                }
+        parameters = Parameters(
+            parameter=[
+                ParametersParameter(
+                    name="result",
+                    valueBoolean=is_valid and display_valid,
+                ),
+                ParametersParameter(
+                    name="code",
+                    valueCode=code,
+                ),
             ]
-        }
-        
+        )
+
         if found_display:
-            parameters["parameter"].append({
-                "name": "display",
-                "valueString": found_display
-            })
-        
+            parameters.parameter.append(
+                ParametersParameter(
+                    name="display",
+                    valueString=found_display,
+                )
+            )
+
         if not is_valid:
-            parameters["parameter"].append({
-                "name": "message",
-                "valueString": f"Code '{code}' not found in CodeSystem"
-            })
+            parameters.parameter.append(
+                ParametersParameter(
+                    name="message",
+                    valueString=f"Code '{code}' not found in CodeSystem",
+                )
+            )
         elif not display_valid:
-            parameters["parameter"].append({
-                "name": "message",
-                "valueString": f"Display '{display}' does not match expected '{found_display}'"
-            })
-        
-        return JSONResponse(content=parameters)
+            parameters.parameter.append(
+                ParametersParameter(
+                    name="message",
+                    valueString=f"Display '{display}' does not match expected '{found_display}'",
+                )
+            )
+
+        return parameters
         
     except HTTPException:
         raise
@@ -423,7 +435,7 @@ async def validate_code(
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 
-@router.get("/{id}/$lookup", summary="Concept Lookup")
+@router.get("/{id}/$lookup", summary="Concept Lookup", response_model=Parameters)
 async def lookup_concept(
     id: str = Path(..., description="CodeSystem logical ID"),
     code: str = Query(..., description="Code to lookup"),
@@ -474,60 +486,63 @@ async def lookup_concept(
             )
         
         # Build Parameters response
-        parameters = {
-            "resourceType": "Parameters",
-            "parameter": [
-                {
-                    "name": "name",
-                    "valueString": doc.get("name", "")
-                },
-                {
-                    "name": "version",
-                    "valueString": doc.get("version", "")
-                },
-                {
-                    "name": "display",
-                    "valueString": concept_data.get("display", "")
-                }
+        parameters = Parameters(
+            parameter=[
+                ParametersParameter(
+                    name="name",
+                    valueString=doc.get("name", ""),
+                ),
+                ParametersParameter(
+                    name="version",
+                    valueString=doc.get("version", ""),
+                ),
+                ParametersParameter(
+                    name="display",
+                    valueString=concept_data.get("display", ""),
+                ),
             ]
-        }
-        
+        )
+
         # Add definition if available
         if concept_data.get("definition"):
-            parameters["parameter"].append({
-                "name": "definition",
-                "valueString": concept_data["definition"]
-            })
-        
+            parameters.parameter.append(
+                ParametersParameter(
+                    name="definition",
+                    valueString=concept_data["definition"],
+                )
+            )
+
         # Add properties if requested
         if property and concept_data.get("property"):
             for prop in concept_data["property"]:
                 if not property or prop.get("code") in property:
-                    param = {
-                        "name": "property",
-                        "part": [
-                            {
-                                "name": "code",
-                                "valueCode": prop.get("code")
-                            }
-                        ]
-                    }
-                    
-                    # Add property value based on type
+                    part_items: List[ParametersParameterPart] = [
+                        ParametersParameterPart(
+                            name="code",
+                            valueCode=prop.get("code"),
+                        )
+                    ]
+
                     if "valueString" in prop:
-                        param["part"].append({
-                            "name": "value",
-                            "valueString": prop["valueString"]
-                        })
+                        part_items.append(
+                            ParametersParameterPart(
+                                name="value",
+                                valueString=prop["valueString"],
+                            )
+                        )
                     elif "valueCode" in prop:
-                        param["part"].append({
-                            "name": "value",
-                            "valueCode": prop["valueCode"]
-                        })
-                    
-                    parameters["parameter"].append(param)
-        
-        return JSONResponse(content=parameters)
+                        part_items.append(
+                            ParametersParameterPart(
+                                name="value",
+                                valueCode=prop["valueCode"],
+                            )
+                        )
+
+                    parameters.parameter.append(
+                        ParametersParameter(name="property", part=part_items)
+                    )
+
+        return parameters
         
     except HTTPException:
         raise

@@ -9,6 +9,7 @@ import logging
 from datetime import datetime
 
 from app.services.enhanced_namaste_who_mapping import enhanced_namaste_who_mapping_service
+from app.database import get_database
 
 logger = logging.getLogger(__name__)
 
@@ -103,28 +104,61 @@ async def get_enhanced_mapping_status():
         Comprehensive mapping status and analytics
     """
     try:
-        # This would check the database for mapping results
-        # Implementation depends on your database structure
-        
-        # For now, return a structured status format
+        db = await get_database()
+        latest_run = await db.mapping_runs.find_one(
+            {"run_type": "enhanced_multi_tier"},
+            sort=[("completed_at", -1)],
+        )
+
+        if not latest_run:
+            return {
+                "status": "pending",
+                "mapping_type": "multi_tier_enhanced",
+                "summary": {
+                    "message": "No enhanced mapping runs recorded yet. Trigger /enhanced-mapping/create-multi-tier to generate analytics."
+                },
+                "timestamp": datetime.utcnow().isoformat(),
+            }
+
+        validations_total = await db.mapping_validations.count_documents({})
+        latest_validation_doc = await db.mapping_validations.find_one(
+            {}, sort=[("timestamp", -1)]
+        )
+        latest_validation = None
+        if latest_validation_doc:
+            latest_validation = {
+                "namaste_code": latest_validation_doc.get("namaste_code"),
+                "who_code": latest_validation_doc.get("who_code"),
+                "validation_score": latest_validation_doc.get("validation_score"),
+                "reviewer_id": latest_validation_doc.get("reviewer_id"),
+                "timestamp": latest_validation_doc.get("timestamp").isoformat()
+                if isinstance(latest_validation_doc.get("timestamp"), datetime)
+                else latest_validation_doc.get("timestamp"),
+            }
+
         return {
             "status": "completed",
             "mapping_type": "multi_tier_enhanced",
             "summary": {
-                "total_terms_processed": "Available in database",
-                "mapping_quality": "Enhanced with clinical validation",
-                "insurance_compatibility": "High - biomedical codes available"
+                "job_id": latest_run.get("job_id"),
+                "terms_processed": latest_run.get("terms_processed"),
+                "average_confidence": latest_run.get("average_confidence"),
+                "direct_tm2_matches": latest_run.get("direct_tm2_matches"),
+                "biomedical_matches": latest_run.get("biomedical_matches"),
+                "completed_at": latest_run.get("completed_at").isoformat() if latest_run.get("completed_at") else None,
             },
-            "tier_distribution": {
-                "note": "Check database 'enhanced_mappings' collection for detailed results"
+            "tier_distribution": latest_run.get("tier_breakdown", {}),
+            "statistics": latest_run.get("statistics", {}),
+            "validations": {
+                "total_records": validations_total,
+                "last_submission": latest_validation,
             },
             "next_steps": [
-                "Review mapping results in database",
-                "Implement clinical validation workflow", 
-                "Set up EMR integration endpoints",
-                "Configure auto-complete services"
+                "Review most recent run statistics",
+                "Collect additional clinical validations",
+                "Monitor tier distribution trends via /enhanced-mapping/analytics",
             ],
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.utcnow().isoformat(),
         }
         
     except Exception as e:
@@ -149,28 +183,94 @@ async def get_mapping_analytics():
         Comprehensive mapping analytics
     """
     try:
-        # This would analyze the enhanced_mappings collection
-        # and provide detailed statistics
-        
+        db = await get_database()
+
+        total_records = await db.enhanced_mappings.count_documents({})
+        tier_pipeline = [
+            {"$group": {"_id": "$mapping_tier", "count": {"$sum": 1}}},
+            {"$sort": {"count": -1}},
+        ]
+        tier_breakdown: Dict[str, int] = {}
+        async for doc in db.enhanced_mappings.aggregate(tier_pipeline):
+            key = doc["_id"] or "unknown"
+            tier_breakdown[key] = doc["count"]
+
+        confidence_pipeline = [
+            {
+                "$group": {
+                    "_id": None,
+                    "avg_confidence": {"$avg": "$confidence"},
+                    "max_confidence": {"$max": "$confidence"},
+                    "min_confidence": {"$min": "$confidence"},
+                }
+            }
+        ]
+        confidence_cursor = db.enhanced_mappings.aggregate(confidence_pipeline)
+        confidence_doc = await confidence_cursor.to_list(length=1)
+        confidence_stats = confidence_doc[0] if confidence_doc else {}
+
+        validation_pipeline = [
+            {
+                "$group": {
+                    "_id": None,
+                    "avg_validation": {"$avg": "$validation_score"},
+                    "count": {"$sum": 1},
+                }
+            }
+        ]
+        validation_cursor = db.mapping_validations.aggregate(validation_pipeline)
+        validation_doc = await validation_cursor.to_list(length=1)
+        validation_stats = validation_doc[0] if validation_doc else {}
+
+        run_history_cursor = (
+            db.mapping_runs.find({"run_type": "enhanced_multi_tier"})
+            .sort("completed_at", -1)
+            .limit(5)
+        )
+        run_history = []
+        async for doc in run_history_cursor:
+            run_history.append(
+                {
+                    "job_id": doc.get("job_id"),
+                    "completed_at": doc.get("completed_at").isoformat() if doc.get("completed_at") else None,
+                    "average_confidence": doc.get("average_confidence"),
+                    "terms_processed": doc.get("terms_processed"),
+                    "direct_tm2_matches": doc.get("direct_tm2_matches"),
+                    "biomedical_matches": doc.get("biomedical_matches"),
+                }
+            )
+
+        latest_statistics = run_history[0] if run_history else None
+
         return {
             "analytics_type": "enhanced_mapping_performance",
+            "summary": {
+                "total_records": total_records,
+                "tier_breakdown": tier_breakdown,
+                "average_confidence": round(confidence_stats.get("avg_confidence", 0.0), 3) if confidence_stats else None,
+                "validation_average": round(validation_stats.get("avg_validation", 0.0), 3) if validation_stats else None,
+                "validation_count": validation_stats.get("count", 0) if validation_stats else 0,
+            },
+            "confidence": {
+                "average": round(confidence_stats.get("avg_confidence", 0.0), 3) if confidence_stats else None,
+                "highest": confidence_stats.get("max_confidence") if confidence_stats else None,
+                "lowest": confidence_stats.get("min_confidence") if confidence_stats else None,
+            },
             "coverage_analysis": {
-                "traditional_medicine_preservation": "WHO TM2 + semantic bridges",
-                "insurance_compatibility": "Biomedical ICD-11 codes",
-                "clinical_utility": "Dual coding support",
-                "research_value": "Gap analysis for WHO expansion"
+                "tier_distribution": tier_breakdown,
+                "latest_run": latest_statistics,
             },
             "quality_metrics": {
-                "confidence_scoring": "ML-enhanced similarity matching",
-                "clinical_validation": "Expert review workflow",
-                "continuous_improvement": "Feedback loop integration"
+                "validation_average": round(validation_stats.get("avg_validation", 0.0), 3) if validation_stats else None,
+                "validation_records": validation_stats.get("count", 0) if validation_stats else 0,
             },
+            "run_history": run_history,
             "recommendations": {
-                "immediate": "Deploy to pilot EMR systems",
-                "short_term": "Implement clinical review process",
-                "long_term": "Contribute unmappable terms to WHO TM development"
+                "immediate": "Prioritise review of unmappable terms identified in latest run",
+                "short_term": "Expand clinical validations for biomedical-tier mappings",
+                "long_term": "Monitor confidence trends and adjust synonym corpus",
             },
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.utcnow().isoformat(),
         }
         
     except Exception as e:
@@ -189,40 +289,30 @@ async def get_tier_distribution():
         Tier-wise mapping distribution and analysis
     """
     try:
+        db = await get_database()
+        tier_pipeline = [
+            {"$group": {"_id": "$mapping_tier", "count": {"$sum": 1}, "avg_confidence": {"$avg": "$confidence"}}},
+            {"$sort": {"count": -1}},
+        ]
+        tiers: List[Dict[str, Any]] = []
+        async for item in db.enhanced_mappings.aggregate(tier_pipeline):
+            tiers.append(item)
+
+        total = sum(item["count"] for item in tiers)
+        tier_analysis = {}
+        for item in tiers:
+            tier_key = item["_id"] or "unknown"
+            percentage = (item["count"] / total * 100) if total else 0
+            tier_analysis[tier_key] = {
+                "count": item["count"],
+                "percentage": round(percentage, 2),
+                "average_confidence": round(item.get("avg_confidence", 0.0), 3),
+            }
+
         return {
-            "tier_analysis": {
-                "tier_1_direct_tm2": {
-                    "description": "Direct WHO TM2 traditional medicine mapping",
-                    "confidence_range": "0.8-1.0",
-                    "use_case": "Traditional medicine EMRs, research",
-                    "expected_coverage": "10-15%"
-                },
-                "tier_2_biomedical": {
-                    "description": "WHO ICD-11 biomedical equivalent mapping", 
-                    "confidence_range": "0.6-0.8",
-                    "use_case": "Insurance claims, clinical decision support",
-                    "expected_coverage": "60-70%"
-                },
-                "tier_3_semantic": {
-                    "description": "Custom semantic bridge categories",
-                    "confidence_range": "0.3-0.5", 
-                    "use_case": "Research, analytics, conceptual grouping",
-                    "expected_coverage": "10-20%"
-                },
-                "tier_4_unmappable": {
-                    "description": "Traditional concepts without WHO equivalent",
-                    "confidence_range": "0.0",
-                    "use_case": "Knowledge preservation, future WHO expansion",
-                    "expected_coverage": "5-10%"
-                }
-            },
-            "strategic_value": {
-                "clinical_impact": "Enables dual coding in EMR systems",
-                "insurance_benefit": "Global ICD-11 compatibility for claims",
-                "research_value": "Identifies gaps for WHO TM2 expansion",
-                "policy_support": "Evidence-based traditional medicine integration"
-            },
-            "timestamp": datetime.now().isoformat()
+            "tier_analysis": tier_analysis,
+            "total_records": total,
+            "timestamp": datetime.utcnow().isoformat(),
         }
         
     except Exception as e:
@@ -256,24 +346,28 @@ async def validate_mapping(
         Validation submission confirmation
     """
     try:
-        validation_data = {
+        db = await get_database()
+        timestamp = datetime.utcnow()
+        validation_doc = {
             "namaste_code": namaste_code,
             "who_code": who_code,
             "validation_score": validation_score,
             "clinical_notes": clinical_notes,
             "reviewer_id": reviewer_id,
-            "timestamp": datetime.now().isoformat()
+            "timestamp": timestamp,
         }
-        
-        # Store validation in database for ML model improvement
-        # Implementation would update the enhanced_mappings collection
-        
+
+        result = await db.mapping_validations.insert_one(validation_doc)
+
         return {
             "status": "validation_submitted",
-            "validation_id": f"VAL_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
-            "data": validation_data,
+            "validation_id": str(result.inserted_id),
+            "data": {
+                **validation_doc,
+                "timestamp": timestamp.isoformat(),
+            },
             "impact": "Validation will improve future mapping accuracy",
-            "note": "Thank you for contributing to mapping quality improvement"
+            "note": "Thank you for contributing to mapping quality improvement",
         }
         
     except Exception as e:

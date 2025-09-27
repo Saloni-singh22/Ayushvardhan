@@ -72,21 +72,37 @@ class WHOICD11TM2Entity:
         return self.id.split("/")[-1] if self.id else ""
     
     def is_tm2_related(self) -> bool:
-        """Check if entity is related to Traditional Medicine Chapter 2 (TM2)"""
+        """Check if entity is related to Traditional Medicine chapters."""
+
+        chapter_raw = str(self.raw_data.get("chapter", "")).strip().upper()
+        if chapter_raw in {"26", "27", "TM1", "TM1 TM2", "TM2"}:
+            return True
+
         title_lower = self.display_title.lower()
         definition_lower = self.display_definition.lower()
-        
-        # Keywords that indicate TM2 relevance
-        tm2_keywords = [
-            "traditional medicine", "ayurveda", "unani", "siddha", 
-            "homeopathy", "naturopathy", "yoga", "acupuncture",
-            "traditional chinese medicine", "tcm", "complementary medicine",
-            "alternative medicine", "integrative medicine", "traditional healing",
-            "herbal medicine", "traditional therapy"
+
+        tm_keywords = [
+            "traditional medicine",
+            "ayurveda",
+            "unani",
+            "siddha",
+            "homeopathy",
+            "naturopathy",
+            "yoga",
+            "acupuncture",
+            "traditional chinese medicine",
+            "tcm",
+            "complementary medicine",
+            "alternative medicine",
+            "integrative medicine",
+            "traditional healing",
+            "herbal medicine",
+            "traditional therapy",
         ]
-        
-        return any(keyword in title_lower or keyword in definition_lower 
-                  for keyword in tm2_keywords)
+
+        return any(
+            keyword in title_lower or keyword in definition_lower for keyword in tm_keywords
+        )
 
 
 class WHOICD11TM2Client:
@@ -108,25 +124,43 @@ class WHOICD11TM2Client:
         self._request_semaphore = asyncio.Semaphore(5)  # Max 5 concurrent requests
         self._last_request_time = 0
         self._min_request_interval = 0.2  # 200ms between requests
+        self.max_retries = 3
+        self.retry_backoff_factor = 0.5
     
     async def _rate_limited_request(self, method: str, url: str, **kwargs) -> httpx.Response:
         """Make a rate-limited HTTP request"""
         async with self._request_semaphore:
-            # Ensure minimum interval between requests
-            current_time = asyncio.get_event_loop().time()
-            time_since_last = current_time - self._last_request_time
-            if time_since_last < self._min_request_interval:
-                await asyncio.sleep(self._min_request_interval - time_since_last)
-            
-            headers = await self.auth_service.get_authenticated_headers()
-            headers.update(kwargs.pop("headers", {}))
-            
-            async with httpx.AsyncClient(timeout=60.0) as client:
-                response = await client.request(method, url, headers=headers, **kwargs)
-                self._last_request_time = asyncio.get_event_loop().time()
-                
-                response.raise_for_status()
-                return response
+            last_error: Optional[httpx.HTTPError] = None
+            for attempt in range(1, self.max_retries + 1):
+                current_time = asyncio.get_event_loop().time()
+                time_since_last = current_time - self._last_request_time
+                if time_since_last < self._min_request_interval:
+                    await asyncio.sleep(self._min_request_interval - time_since_last)
+
+                headers = await self.auth_service.get_authenticated_headers()
+                headers.update(kwargs.pop("headers", {}))
+
+                try:
+                    async with httpx.AsyncClient(timeout=60.0) as client:
+                        response = await client.request(method, url, headers=headers, **kwargs)
+                    self._last_request_time = asyncio.get_event_loop().time()
+                    response.raise_for_status()
+                    return response
+                except httpx.HTTPError as exc:
+                    last_error = exc
+                    logger.warning(
+                        "WHO ICD request failed (attempt %d/%d): %s",
+                        attempt,
+                        self.max_retries,
+                        exc,
+                    )
+                    if attempt >= self.max_retries:
+                        raise
+                    backoff = self.retry_backoff_factor * (2 ** (attempt - 1))
+                    await asyncio.sleep(backoff)
+
+            if last_error:
+                raise last_error
     
     async def search_entities(
         self, 
@@ -134,7 +168,9 @@ class WHOICD11TM2Client:
         flat_results: bool = True,
         limit: int = 30,
         offset: int = 0,
-        include_tm2_only: bool = True
+        include_tm2_only: bool = True,
+        chapter_filter: Optional[str] = None,
+        use_flexi_search: bool = True,
     ) -> Dict[str, Any]:
         """
         Search ICD-11 entities
@@ -144,7 +180,9 @@ class WHOICD11TM2Client:
             flat_results: Whether to return flat results
             limit: Number of results per page
             offset: Offset for pagination
-            include_tm2_only: Filter for TM2-related entities only
+            include_tm2_only: Filter for TM-related entities only after retrieval
+            chapter_filter: Optional WHO chapter filter (e.g. "TM1", "TM2", "TM1,TM2")
+            use_flexi_search: Whether to enable WHO flexi search for fuzzy matches
             
         Returns:
             dict: Search response from WHO API
@@ -155,6 +193,9 @@ class WHOICD11TM2Client:
         if not term or term.strip() == "":
             term = "disease"  # Default search term if empty
         
+        if include_tm2_only and not chapter_filter:
+            chapter_filter = "TM1,TM2"
+
         # Use simplified query parameters for WHO API MMS endpoint
         search_params = {
             "q": term.strip()
@@ -169,6 +210,12 @@ class WHOICD11TM2Client:
             search_params["limit"] = str(limit)
         if offset:
             search_params["offset"] = str(offset)
+
+        if chapter_filter:
+            search_params["chapterFilter"] = chapter_filter
+
+        if use_flexi_search:
+            search_params["useFlexisearch"] = "true"
         
         try:
             response = await self._rate_limited_request(

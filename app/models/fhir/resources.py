@@ -26,6 +26,54 @@ from .base import (
 )
 
 
+class ParametersParameterPart(DomainResource):
+    """Nested part element inside a FHIR Parameters.parameter."""
+
+    name: str = Field(..., description="Name of additional parameter part")
+    valueBoolean: Optional[bool] = Field(None, description="Boolean parameter value")
+    valueCode: Optional[str] = Field(None, description="Code parameter value")
+    valueString: Optional[str] = Field(None, description="String parameter value")
+    valueUri: Optional[str] = Field(None, description="URI parameter value")
+    valueCoding: Optional[Coding] = Field(None, description="Coding parameter value")
+    valueInteger: Optional[int] = Field(None, description="Integer parameter value")
+    valueDecimal: Optional[float] = Field(None, description="Decimal parameter value")
+    valueDateTime: Optional[datetime] = Field(None, description="DateTime parameter value")
+    resource: Optional[DomainResource] = Field(None, description="Inline resource payload")
+    part: Optional[List['ParametersParameterPart']] = Field(
+        None,
+        description="Further nested parameter parts"
+    )
+
+
+class ParametersParameter(DomainResource):
+    """Top-level parameter element in a FHIR Parameters resource."""
+
+    name: str = Field(..., description="Name of the parameter")
+    valueBoolean: Optional[bool] = Field(None, description="Boolean parameter value")
+    valueCode: Optional[str] = Field(None, description="Code parameter value")
+    valueString: Optional[str] = Field(None, description="String parameter value")
+    valueUri: Optional[str] = Field(None, description="URI parameter value")
+    valueCoding: Optional[Coding] = Field(None, description="Coding parameter value")
+    valueInteger: Optional[int] = Field(None, description="Integer parameter value")
+    valueDecimal: Optional[float] = Field(None, description="Decimal parameter value")
+    valueDateTime: Optional[datetime] = Field(None, description="DateTime parameter value")
+    resource: Optional[DomainResource] = Field(None, description="Inline resource payload")
+    part: Optional[List[ParametersParameterPart]] = Field(
+        None,
+        description="Nested parameter parts"
+    )
+
+
+class Parameters(DomainResource):
+    """FHIR Parameters resource used for custom operation responses."""
+
+    resourceType: Literal["Parameters"] = Field(default="Parameters")
+    parameter: List[ParametersParameter] = Field(
+        default_factory=list,
+        description="Operation response parameters"
+    )
+
+
 class CodeSystemProperty(DomainResource):
     """CodeSystem property definition"""
     code: str = Field(..., description="Identifies the property on the concepts")
@@ -354,3 +402,5 @@ ValueSetCompose.model_rebuild()
 ValueSetExpansion.model_rebuild()
 ValueSetExpansionContains.model_rebuild()
 BundleEntry.model_rebuild()
+ParametersParameterPart.model_rebuild()
+ParametersParameter.model_rebuild()

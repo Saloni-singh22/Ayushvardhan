@@ -4,6 +4,7 @@ MongoDB setup with Motor async driver for FHIR R4 resources
 """
 
 import asyncio
+from datetime import datetime
 from typing import Optional
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
 from pymongo.server_api import ServerApi
@@ -21,6 +22,7 @@ class MongoDB:
     def __init__(self):
         self.client: Optional[AsyncIOMotorClient] = None
         self.database: Optional[AsyncIOMotorDatabase] = None
+        self.connected_at: Optional[datetime] = None
     
     async def connect(self) -> None:
         """Establish connection to MongoDB"""
@@ -39,6 +41,7 @@ class MongoDB:
             # Test the connection
             await self.client.admin.command('ping')
             self.database = self.client[settings.mongodb_database]
+            self.connected_at = datetime.utcnow()
             
             logger.info(f"Connected to MongoDB: {settings.mongodb_database}")
             
@@ -54,6 +57,7 @@ class MongoDB:
         if self.client:
             self.client.close()
             logger.info("Disconnected from MongoDB")
+        self.connected_at = None
     
     async def create_indexes(self) -> None:
         """Create database indexes for optimal terminology searches"""
@@ -171,9 +175,23 @@ class MongoDB:
             ], name="mapping_source_target")
             
             await self.database.code_mappings.create_index([
-                ("confidence_score", -1),
-                ("mapping_type", 1)
-            ], name="mapping_confidence_type")
+                ("aggregate_score", -1),
+                ("tier", 1)
+            ], name="mapping_score_tier")
+
+            await self.database.code_mappings.create_index([
+                ("job_id", 1),
+                ("created_at", -1)
+            ], name="mapping_job_created")
+
+            # Mapping runs collection indexes
+            await self.database.mapping_runs.create_index([
+                ("job_id", 1)
+            ], unique=True, name="mapping_runs_job")
+
+            await self.database.mapping_runs.create_index([
+                ("completed_at", -1)
+            ], name="mapping_runs_completed")
             
             # ABHA authentication collection indexes
             await self.database.abha_sessions.create_index([

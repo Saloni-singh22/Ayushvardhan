@@ -1,327 +1,171 @@
-"""
-NAMASTE-WHO TM2 Mapping Strategy Implementation
-Optimal approach for creating FHIR-compliant dual coding system
-"""
+"""NAMASTE ↔ WHO ICD-11 mapping orchestration service."""
 
-from typing import List, Dict, Any, Optional, Tuple
-import asyncio
-import logging
+from collections import Counter
 from datetime import datetime
+from typing import Any, Dict, List
 
-from app.services.who_icd_client import who_icd_client, WHOICD11TM2Entity
-from app.services.who_fhir_converter import who_fhir_converter
+import logging
+
 from app.database import get_database
+from app.services.mapping_engine import (
+    MappingEngine,
+    MappingJobContext,
+    MappingRecord,
+    NamasteTerm,
+)
 
 logger = logging.getLogger(__name__)
 
 
 class NAMASTEWHOMappingService:
-    """
-    Service to create systematic mapping between NAMASTE and WHO ICD-11 TM2
-    This implements the optimal architecture for dual coding
-    """
-    
-    def __init__(self):
-        self.namaste_terms_processed = 0
-        self.who_matches_found = 0
-        self.mapping_results = []
-    
-    async def create_comprehensive_mapping(self) -> Dict[str, Any]:
-        """
-        Phase 1: Create comprehensive NAMASTE ↔ WHO TM2 mapping
-        
+    """High-level façade coordinating the mapping engine + persistence."""
+
+    def __init__(self) -> None:
+        self._engine: MappingEngine | None = None
+
+    async def create_comprehensive_mapping(
+        self, *, force_refresh: bool = False
+    ) -> Dict[str, Any]:
+        """Run full mapping workflow and persist results.
+
+        Args:
+            force_refresh: When ``True`` existing records for the job are cleared
+                before persistence.
         Returns:
-            dict: Mapping results and statistics
+            Summary dictionary with statistics and persisted resource identifiers.
         """
-        
-        logger.info("[MAPPING] Starting comprehensive NAMASTE-WHO TM2 mapping process")
-        
-        # Step 1: Get all NAMASTE terms from existing CodeSystems
-        namaste_terms = await self._get_namaste_terms()
-        logger.info(f"[DATA] Found {len(namaste_terms)} NAMASTE terms to map")
-        
-        # Step 2: Search WHO API for each NAMASTE term
-        who_mappings = await self._search_who_for_namaste_terms(namaste_terms)
-        logger.info(f"[SEARCH] Found WHO matches for {len(who_mappings)} NAMASTE terms")
-        
-        # Step 3: Create enhanced WHO TM2 CodeSystem with mapped terms
-        who_codesystem = await self._create_enhanced_who_codesystem(who_mappings)
-        
-        # Step 4: Generate FHIR ConceptMap for NAMASTE ↔ WHO TM2
-        concept_map = await self._create_namaste_who_conceptmap(who_mappings)
-        
-        # Step 5: Store results in database
-        await self._store_mapping_results(who_codesystem, concept_map, who_mappings)
-        
-        return {
-            "namaste_terms_processed": self.namaste_terms_processed,
-            "who_matches_found": self.who_matches_found,
-            "mapping_success_rate": (self.who_matches_found / self.namaste_terms_processed) * 100,
-            "who_codesystem_id": who_codesystem.id,
-            "concept_map_id": concept_map.id,
-            "timestamp": datetime.now().isoformat()
-        }
-    
-    async def _get_namaste_terms(self) -> List[Dict[str, Any]]:
-        """Extract all NAMASTE terms from existing CodeSystems"""
-        
+
         db = await get_database()
-        
-        # Get all NAMASTE CodeSystems by ID pattern
-        namaste_codesystems = await db.codesystems.find({
-            "$or": [
-                {"id": {"$regex": "namaste-.*", "$options": "i"}},
-                {"name": {"$regex": "NAMASTE.*", "$options": "i"}},
-                {"url": {"$regex": ".*namaste.*", "$options": "i"}}
-            ]
-        }).to_list(None)
-        
-        namaste_terms = []
-        
-        for codesystem in namaste_codesystems:
-            # Determine system type from CodeSystem ID or name
-            codesystem_id = codesystem.get("id", "")
-            codesystem_name = codesystem.get("name", "")
-            
-            system_type = "AYURVEDA"  # Default
-            if "siddha" in codesystem_id.lower() or "siddha" in codesystem_name.lower():
-                system_type = "SIDDHA"
-            elif "unani" in codesystem_id.lower() or "unani" in codesystem_name.lower():
-                system_type = "UNANI"
-            elif "ayur" in codesystem_id.lower() or "ayur" in codesystem_name.lower():
-                system_type = "AYURVEDA"
-            
-            for concept in codesystem.get("concept", []):
-                namaste_terms.append({
-                    "code": concept.get("code"),
-                    "display": concept.get("display"),
-                    "definition": concept.get("definition"),
-                    "system_type": system_type,  # AYURVEDA, SIDDHA, UNANI
-                    "codesystem_id": codesystem.get("id"),
-                    "codesystem_url": codesystem.get("url")
-                })
-        
-        self.namaste_terms_processed = len(namaste_terms)
-        return namaste_terms
-    
-    async def _search_who_for_namaste_terms(self, namaste_terms: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """Search WHO ICD-11 API for each NAMASTE term"""
-        
-        mappings = []
-        batch_size = 10  # Process in batches to respect rate limits
-        
-        for i in range(0, len(namaste_terms), batch_size):
-            batch = namaste_terms[i:i + batch_size]
-            
-            # Process batch concurrently
-            batch_tasks = [
-                self._search_single_namaste_term(term) 
-                for term in batch
-            ]
-            
-            batch_results = await asyncio.gather(*batch_tasks, return_exceptions=True)
-            
-            for term, result in zip(batch, batch_results):
-                if isinstance(result, Exception):
-                    logger.warning(f"Failed to search WHO for '{term['display']}': {result}")
-                    continue
-                
-                if result:  # Found WHO matches
-                    mappings.append({
-                        "namaste_term": term,
-                        "who_entities": result,
-                        "mapping_confidence": self._calculate_mapping_confidence(term, result)
-                    })
-                    self.who_matches_found += 1
-            
-            # Rate limiting delay
-            await asyncio.sleep(1)
-            
-            logger.info(f"[PROGRESS] Processed {min(i + batch_size, len(namaste_terms))}/{len(namaste_terms)} NAMASTE terms")
-        
-        return mappings
-    
-    async def _search_single_namaste_term(self, namaste_term: Dict[str, Any]) -> Optional[List[WHOICD11TM2Entity]]:
-        """Search WHO API for a single NAMASTE term"""
-        
-        search_terms = [
-            namaste_term["display"],  # Primary term
-            namaste_term["definition"][:50] if namaste_term.get("definition") else "",  # Definition excerpt
-        ]
-        
-        # Add system-specific search terms
-        system_type = namaste_term.get("system_type", "").lower()
-        if system_type == "ayurveda":
-            search_terms.extend(["ayurvedic", "dosha", "vata", "pitta", "kapha"])
-        elif system_type == "siddha":
-            search_terms.extend(["siddha", "traditional tamil"])
-        elif system_type == "unani":
-            search_terms.extend(["unani", "greco-arabic"])
-        
-        # Search WHO API with each term
-        who_entities = []
-        
-        for search_term in search_terms:
-            if not search_term or len(search_term.strip()) < 3:
-                continue
-                
-            try:
-                search_results = await who_icd_client.search_entities(
-                    term=search_term.strip(),
-                    limit=10,
-                    include_tm2_only=True
-                )
-                
-                entities_data = search_results.get("destinationEntities", [])
-                for entity_data in entities_data:
-                    entity = WHOICD11TM2Entity(entity_data)
-                    if entity.is_tm2_related():
-                        who_entities.append(entity)
-                
-                # If we found good matches, stop searching
-                if len(who_entities) >= 3:
-                    break
-                    
-            except Exception as e:
-                logger.warning(f"WHO search failed for '{search_term}': {e}")
-                continue
-        
-        return who_entities if who_entities else None
-    
-    def _calculate_mapping_confidence(self, namaste_term: Dict[str, Any], who_entities: List[WHOICD11TM2Entity]) -> float:
-        """Calculate confidence score for NAMASTE ↔ WHO mapping"""
-        
-        if not who_entities:
-            return 0.0
-        
-        namaste_display = namaste_term["display"].lower()
-        max_confidence = 0.0
-        
-        for entity in who_entities:
-            who_title = entity.display_title.lower()
-            who_definition = entity.display_definition.lower()
-            
-            # Simple text similarity scoring
-            title_match = len(set(namaste_display.split()) & set(who_title.split()))
-            definition_match = len(set(namaste_display.split()) & set(who_definition.split()))
-            
-            confidence = (title_match * 0.7 + definition_match * 0.3) / max(len(namaste_display.split()), 1)
-            max_confidence = max(max_confidence, confidence)
-        
-        return min(max_confidence, 1.0)
-    
-    async def _create_enhanced_who_codesystem(self, mappings: List[Dict[str, Any]]) -> Any:
-        """Create WHO TM2 CodeSystem from mapped entities"""
-        
-        # Collect all unique WHO entities
-        all_who_entities = []
-        seen_entity_ids = set()
-        
-        for mapping in mappings:
-            for entity in mapping["who_entities"]:
-                if entity.entity_id not in seen_entity_ids:
-                    all_who_entities.append(entity)
-                    seen_entity_ids.add(entity.entity_id)
-        
-        # Create FHIR CodeSystem
-        codesystem = who_fhir_converter.create_codesystem_from_entities(
-            entities=all_who_entities,
-            system_name="WHO-ICD11-TM2-NAMASTE-Mapped",
-            system_title="WHO ICD-11 TM2 Entities Mapped from NAMASTE Terms",
-            system_description="WHO ICD-11 Traditional Medicine Module 2 entities discovered through NAMASTE term mapping"
+        engine = self._get_engine(db)
+
+        namaste_terms = await MappingEngine.load_namaste_terms(db)
+        if not namaste_terms:
+            logger.warning("[MAPPING] No NAMASTE terms found. Aborting mapping run.")
+            return {
+                "terms_processed": 0,
+                "records_created": 0,
+                "tier_breakdown": {},
+                "job_id": None,
+                "concept_map_id": None,
+                "timestamp": datetime.utcnow().isoformat(),
+            }
+
+        job = MappingJobContext()
+        records = await engine.map_all_terms(
+            namaste_terms,
+            job,
+            force_refresh=force_refresh,
         )
-        
-        return codesystem
-    
-    async def _create_namaste_who_conceptmap(self, mappings: List[Dict[str, Any]]) -> Any:
-        """Create FHIR ConceptMap for NAMASTE ↔ WHO TM2 mapping"""
-        
-        # This would create a proper FHIR ConceptMap resource
-        # Implementation depends on your FHIR models
-        
-        concept_map_data = {
-            "resourceType": "ConceptMap",
-            "id": "namaste-who-tm2-mapping",
-            "url": "http://namaste.ayush.gov.in/fhir/ConceptMap/namaste-who-tm2",
-            "version": "1.0.0",
-            "name": "NAMASTEWHOTMMapping",
-            "title": "NAMASTE to WHO ICD-11 TM2 Concept Mapping",
-            "status": "active",
-            "description": "Mapping between NAMASTE traditional medicine codes and WHO ICD-11 TM2",
-            "sourceUri": "http://namaste.ayush.gov.in/fhir/CodeSystem/namaste",
-            "targetUri": "http://who.int/icd11/tm2",
-            "group": []
-        }
-        
-        # Group mappings by NAMASTE system type
-        for mapping in mappings:
-            namaste_term = mapping["namaste_term"]
-            who_entities = mapping["who_entities"]
-            confidence = mapping["mapping_confidence"]
-            
-            if confidence < 0.3:  # Skip low-confidence mappings
-                continue
-            
-            for who_entity in who_entities[:3]:  # Top 3 matches
-                concept_map_data["group"].append({
-                    "source": namaste_term["codesystem_url"],
-                    "target": "http://who.int/icd11/tm2",
-                    "element": [{
-                        "code": namaste_term["code"],
-                        "display": namaste_term["display"],
-                        "target": [{
-                            "code": who_entity.code,
-                            "display": who_entity.display_title,
-                            "equivalence": "wider" if confidence > 0.7 else "inexact",
-                            "comment": f"Mapping confidence: {confidence:.2f}"
-                        }]
-                    }]
-                })
-        
-        return concept_map_data
-    
-    async def _store_mapping_results(self, who_codesystem: Any, concept_map: Any, mappings: List[Dict[str, Any]]) -> None:
-        """Store mapping results in database"""
-        
-        db = await get_database()
-        
-        # Store WHO CodeSystem
-        who_codesystem_dict = who_codesystem.model_dump()
-        who_codesystem_dict["source"] = "WHO_ICD11_TM2_NAMASTE_MAPPED"
-        who_codesystem_dict["mapping_timestamp"] = datetime.now()
-        
-        await db.codesystems.replace_one(
-            {"id": who_codesystem.id},
-            who_codesystem_dict,
-            upsert=True
-        )
-        
-        # Store ConceptMap
-        concept_map["mapping_timestamp"] = datetime.now()
+
+        await engine.persist_records(records)
+        concept_map = await engine.create_concept_map(records, job)
+        concept_map_doc = concept_map.model_dump(by_alias=True)
+        concept_map_doc["job_id"] = job.job_id
+        concept_map_doc["mapping_timestamp"] = datetime.utcnow()
+
         await db.conceptmaps.replace_one(
-            {"id": concept_map["id"]},
-            concept_map,
-            upsert=True
+            {"id": concept_map.id},
+            concept_map_doc,
+            upsert=True,
         )
-        
-        # Store detailed mapping metadata
-        mapping_metadata = {
-            "_id": "namaste_who_mapping_metadata",
-            "total_namaste_terms": self.namaste_terms_processed,
-            "successful_mappings": self.who_matches_found,
-            "success_rate": (self.who_matches_found / self.namaste_terms_processed) * 100,
-            "mapping_details": mappings,
-            "created_at": datetime.now(),
-            "codesystem_id": who_codesystem.id,
-            "conceptmap_id": concept_map["id"]
+
+        await self._store_mapping_run(db, job, namaste_terms, records, concept_map.id)
+
+        summary = self._build_summary(job, namaste_terms, records, concept_map.id)
+        logger.info("[MAPPING] Job %s summary: %s", job.job_id, summary)
+        return summary
+
+    # ------------------------------------------------------------------
+    # Internal helpers
+    # ------------------------------------------------------------------
+    def _get_engine(self, db) -> MappingEngine:
+        if self._engine is None:
+            self._engine = MappingEngine(db)
+        return self._engine
+
+    async def _store_mapping_run(
+        self,
+        db,
+        job: MappingJobContext,
+        terms: List[NamasteTerm],
+        records: List[MappingRecord],
+        concept_map_id: str,
+    ) -> None:
+        tier_counts = Counter(record.tier for record in records)
+        doc = {
+            "job_id": job.job_id,
+            "namaste_release": job.namaste_release,
+            "who_release": job.who_release,
+            "terms_processed": len(terms),
+            "records_created": len(records),
+            "tier_breakdown": dict(tier_counts),
+            "started_at": job.run_started_at,
+            "completed_at": datetime.utcnow(),
+            "concept_map_id": concept_map_id,
         }
-        
+        await db.mapping_runs.replace_one(
+            {"job_id": job.job_id},
+            doc,
+            upsert=True,
+        )
+
+        metadata_doc = {
+            "_id": "namaste_who_mapping_metadata",
+            "last_job_id": job.job_id,
+            "terms_processed": len(terms),
+            "records_created": len(records),
+            "tier_breakdown": dict(tier_counts),
+            "last_updated": datetime.utcnow(),
+            "concept_map_id": concept_map_id,
+        }
         await db.mapping_metadata.replace_one(
             {"_id": "namaste_who_mapping_metadata"},
-            mapping_metadata,
-            upsert=True
+            metadata_doc,
+            upsert=True,
         )
 
+    def _build_summary(
+        self,
+        job: MappingJobContext,
+        terms: List[NamasteTerm],
+        records: List[MappingRecord],
+        concept_map_id: str,
+    ) -> Dict[str, Any]:
+        tier_counts = Counter(record.tier for record in records)
+        avg_score = (
+            sum(record.aggregate_score for record in records) / len(records)
+            if records
+            else 0.0
+        )
+        best_examples = self._extract_best_examples(records)
+        return {
+            "job_id": job.job_id,
+            "namaste_release": job.namaste_release,
+            "who_release": job.who_release,
+            "terms_processed": len(terms),
+            "records_created": len(records),
+            "tier_breakdown": {tier: count for tier, count in tier_counts.items()},
+            "average_score": round(avg_score, 3),
+            "concept_map_id": concept_map_id,
+            "timestamp": datetime.utcnow().isoformat(),
+            "high_confidence_examples": best_examples,
+        }
 
-# Global service instance
+    def _extract_best_examples(
+        self, records: List[MappingRecord], limit: int = 5
+    ) -> List[Dict[str, Any]]:
+        top_records = sorted(records, key=lambda r: r.aggregate_score, reverse=True)[:limit]
+        return [
+            {
+                "source_code": record.source_code,
+                "source_display": record.source_display,
+                "target_code": record.target_code,
+                "target_display": record.target_display,
+                "tier": record.tier,
+                "score": round(record.aggregate_score, 3),
+            }
+            for record in top_records
+        ]
+
+
 namaste_who_mapping_service = NAMASTEWHOMappingService()

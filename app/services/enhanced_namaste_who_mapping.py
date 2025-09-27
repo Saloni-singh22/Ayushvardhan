@@ -8,6 +8,7 @@ import asyncio
 import logging
 from datetime import datetime
 from enum import Enum
+from uuid import uuid4
 
 from app.services.who_icd_client import who_icd_client, WHOICD11TM2Entity
 from app.services.who_fhir_converter import who_fhir_converter
@@ -130,6 +131,8 @@ class EnhancedNAMASTEWHOMappingService:
             # Process each term through multi-tier mapping
             mapping_results = []
             tier_stats = {tier: 0 for tier in MappingTier}
+            run_id = uuid4().hex
+            started_at = datetime.utcnow()
             
             for i, term in enumerate(namaste_terms):
                 logger.info(f"Processing term {i+1}/{len(namaste_terms)}: {term.get('display', 'N/A')}")
@@ -144,8 +147,18 @@ class EnhancedNAMASTEWHOMappingService:
             
             # Store results and generate statistics
             await self._store_mapping_results(mapping_results)
-            
+
             statistics = self._generate_mapping_statistics(mapping_results, tier_stats)
+            completed_at = datetime.utcnow()
+            await self._record_mapping_run(
+                run_id=run_id,
+                started_at=started_at,
+                completed_at=completed_at,
+                tier_stats=tier_stats,
+                statistics=statistics,
+                mapping_results=mapping_results,
+                force_refresh=force_refresh,
+            )
             
             logger.info("Enhanced multi-tier mapping completed successfully")
             return {
@@ -154,7 +167,10 @@ class EnhancedNAMASTEWHOMappingService:
                 "mapping_results": len(mapping_results),
                 "tier_distribution": {tier.value: count for tier, count in tier_stats.items()},
                 "statistics": statistics,
-                "timestamp": datetime.now().isoformat()
+                "timestamp": completed_at.isoformat(),
+                "run_id": run_id,
+                "started_at": started_at.isoformat(),
+                "completed_at": completed_at.isoformat(),
             }
             
         except Exception as e:
@@ -398,6 +414,72 @@ class EnhancedNAMASTEWHOMappingService:
             
         except Exception as e:
             logger.error(f"Failed to store mapping results: {str(e)}")
+
+    async def _record_mapping_run(
+        self,
+        *,
+        run_id: str,
+        started_at: datetime,
+        completed_at: datetime,
+        tier_stats: Dict[MappingTier, int],
+        statistics: Dict[str, Any],
+        mapping_results: List[MappingResult],
+        force_refresh: bool,
+    ) -> None:
+        """Persist run analytics for dashboard consumption."""
+
+        try:
+            db = await get_database()
+            if db is None:
+                return
+
+            tier_breakdown = {tier.value: count for tier, count in tier_stats.items()}
+            total_results = len(mapping_results)
+            avg_confidence = (
+                sum(result.confidence for result in mapping_results) / total_results
+                if total_results
+                else 0.0
+            )
+            direct_matches = tier_stats.get(MappingTier.DIRECT_TM2, 0)
+            biomedical_matches = tier_stats.get(MappingTier.BIOMEDICAL_ICD11, 0)
+
+            run_doc = {
+                "job_id": run_id,
+                "run_type": "enhanced_multi_tier",
+                "terms_processed": total_results,
+                "tier_breakdown": tier_breakdown,
+                "statistics": statistics,
+                "average_confidence": round(avg_confidence, 3),
+                "direct_tm2_matches": direct_matches,
+                "biomedical_matches": biomedical_matches,
+                "force_refresh": force_refresh,
+                "started_at": started_at,
+                "completed_at": completed_at,
+            }
+
+            await db.mapping_runs.replace_one(
+                {"job_id": run_id},
+                run_doc,
+                upsert=True,
+            )
+
+            metadata_doc = {
+                "_id": "enhanced_namaste_who_mapping_metadata",
+                "last_run_id": run_id,
+                "last_started_at": started_at,
+                "last_completed_at": completed_at,
+                "tier_breakdown": tier_breakdown,
+                "statistics": statistics,
+                "average_confidence": round(avg_confidence, 3),
+            }
+
+            await db.mapping_metadata.replace_one(
+                {"_id": "enhanced_namaste_who_mapping_metadata"},
+                metadata_doc,
+                upsert=True,
+            )
+        except Exception as exc:
+            logger.error("Failed to store enhanced mapping analytics: %s", exc)
 
     def _generate_mapping_statistics(self, mapping_results: List[MappingResult], 
                                    tier_stats: Dict[MappingTier, int]) -> Dict[str, Any]:
